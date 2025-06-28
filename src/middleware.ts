@@ -24,8 +24,6 @@ export function middleware(request: NextRequest) {
   return NextResponse.next()
 }
 
-export const runtime = 'nodejs'
-
 export const config = {
   matcher: ['/admin/login', '/admin/dashboard/:path*'],
 }

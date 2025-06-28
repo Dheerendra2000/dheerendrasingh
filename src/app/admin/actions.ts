@@ -3,14 +3,16 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@example.com'
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin'
 const COOKIE_NAME = 'admin-session'
 
 // This function is designed to be used in a useFormState hook.
 export async function login(prevState: { error: string } | null, formData: FormData) {
+  const email = formData.get('email') as string
   const password = formData.get('password') as string
   
-  if (password === ADMIN_PASSWORD) {
+  if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
     cookies().set(COOKIE_NAME, 'true', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -19,7 +21,7 @@ export async function login(prevState: { error: string } | null, formData: FormD
     })
     redirect('/admin/dashboard')
   } else {
-    return { error: 'Invalid password. Please try again.' }
+    return { error: 'Invalid email or password. Please try again.' }
   }
 }
 
