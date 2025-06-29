@@ -12,6 +12,7 @@ const galleryItemSchema = z.object({
   hint: z.string().optional(),
   category: z.string().min(1, { message: 'Category is required.' }),
   videoSrc: z.string().url({ message: 'Video URL must be a valid URL.' }).optional().or(z.literal('')),
+  size: z.enum(['regular', 'large']).optional(),
 }).refine(data => {
     if (data.type === 'video') {
         return !!data.videoSrc;

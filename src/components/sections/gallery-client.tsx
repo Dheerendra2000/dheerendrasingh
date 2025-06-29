@@ -5,6 +5,7 @@ import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import type { GalleryContent } from "@/lib/contentDefaults"
+import { cn } from "@/lib/utils"
 
 export default function GalleryClient({ content }: { content: GalleryContent }) {
   const [activeFilter, setActiveFilter] = React.useState("all");
@@ -32,11 +33,16 @@ export default function GalleryClient({ content }: { content: GalleryContent }) 
             </Button>
           ))}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
           {filteredItems.map(item => (
-            <Card key={item.id} className="overflow-hidden group shadow-lg">
+            <Card 
+              key={item.id} 
+              className={cn(
+                "overflow-hidden group shadow-lg",
+                item.size === 'large' ? 'sm:col-span-2 lg:col-span-2' : ''
+              )}
+            >
               <CardContent className="p-0">
-                <div className="aspect-[3/2] w-full">
                   {item.type === 'video' && item.videoSrc ? (
                      <video
                       poster={item.src}
@@ -58,7 +64,6 @@ export default function GalleryClient({ content }: { content: GalleryContent }) 
                       className="object-cover w-full h-full transform group-hover:scale-110 transition-transform duration-500"
                     />
                   )}
-                </div>
               </CardContent>
             </Card>
           ))}

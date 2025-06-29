@@ -12,6 +12,14 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Plus, Trash2 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -52,7 +60,7 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
   const addItem = () => {
     setItems(prev => [
       ...prev,
-      { id: crypto.randomUUID(), type: 'image', src: '', alt: '', hint: '', category: '', videoSrc: '' }
+      { id: crypto.randomUUID(), type: 'image', src: '', alt: '', hint: '', category: '', videoSrc: '', size: 'regular' }
     ])
   }
 
@@ -80,24 +88,41 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
                   </Button>
               </CardHeader>
               <CardContent className="space-y-4">
-                 <div className="space-y-2">
-                    <Label>Item Type</Label>
-                    <RadioGroup
-                      value={item.type}
-                      onValueChange={(value) => handleInputChange(item.id, 'type', value as 'image' | 'video')}
-                      className="flex items-center gap-4 pt-2"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="image" id={`type-image-${item.id}`} />
-                        <Label htmlFor={`type-image-${item.id}`} className="font-normal">Image</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="video" id={`type-video-${item.id}`} />
-                        <Label htmlFor={`type-video-${item.id}`} className="font-normal">Video</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label>Item Type</Label>
+                        <RadioGroup
+                          value={item.type}
+                          onValueChange={(value) => handleInputChange(item.id, 'type', value as 'image' | 'video')}
+                          className="flex items-center gap-4 pt-2"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="image" id={`type-image-${item.id}`} />
+                            <Label htmlFor={`type-image-${item.id}`} className="font-normal">Image</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="video" id={`type-video-${item.id}`} />
+                            <Label htmlFor={`type-video-${item.id}`} className="font-normal">Video</Label>
+                          </div>
+                        </RadioGroup>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor={`size-${item.id}`}>Display Size</Label>
+                        <Select
+                            value={item.size || 'regular'}
+                            onValueChange={(value) => handleInputChange(item.id, 'size', value)}
+                        >
+                            <SelectTrigger id={`size-${item.id}`}>
+                                <SelectValue placeholder="Select display size" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="regular">Regular</SelectItem>
+                                <SelectItem value="large">Large (2 columns)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                 </div>
+                 
                  <div className="space-y-2">
                     <Label htmlFor={`src-${item.id}`}>Image / Poster URL</Label>
                     <Input 

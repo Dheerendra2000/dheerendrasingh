@@ -1,4 +1,5 @@
 
+
 export type HomeContent = {
   heroTitle: string;
   heroTagline: string;
@@ -92,6 +93,7 @@ export type GalleryItem = {
   alt: string;
   hint: string;
   videoSrc?: string; // URL for the video file
+  size?: 'regular' | 'large';
 };
 
 export type GalleryContent = {
@@ -102,13 +104,13 @@ export type GalleryContent = {
 export const defaultGalleryContent: GalleryContent = {
   filters: ["all", "events", "media", "behind-the-scenes", "workshops"],
   items: [
-    { id: "1", type: "image", category: "events", src: "https://placehold.co/600x400.png", alt: "Speaking at a major tech conference", hint: "conference stage" },
-    { id: "2", type: "video", category: "workshops", src: "https://placehold.co/600x400.png", videoSrc: "https://videos.pexels.com/video-files/3209828/3209828-hd_1920_1080_25fps.mp4", alt: "A sample workshop video", hint: "workshop video" },
-    { id: "3", type: "image", category: "media", src: "https://placehold.co/600x400.png", alt: "Interview on a TV show", hint: "tv interview" },
-    { id: "4", type: "image", category: "behind-the-scenes", src: "https://placehold.co/600x400.png", alt: "Preparing backstage for a keynote", hint: "backstage preparation" },
-    { id: "5", type: "image", category: "events", src: "https://placehold.co/600x400.png", alt: "Workshop with a corporate team", hint: "corporate workshop" },
-    { id: "6", type: "image", category: "media", src: "https://placehold.co/600x400.png", alt: "Podcast recording session", hint: "podcast recording" },
-    { id: "7", type: "image", category: "events", src: "https://placehold.co/600x400.png", alt: "Panel discussion on branding", hint: "panel discussion" },
-    { id: "8", type: "image", category: "behind-the-scenes", src: "https://placehold.co/600x400.png", alt: "Meeting with a client", hint: "client meeting" },
+    { id: "1", type: "image", category: "events", src: "https://placehold.co/600x400.png", alt: "Speaking at a major tech conference", hint: "conference stage", size: "large" },
+    { id: "2", type: "video", category: "workshops", src: "https://placehold.co/600x400.png", videoSrc: "https://videos.pexels.com/video-files/3209828/3209828-hd_1920_1080_25fps.mp4", alt: "A sample workshop video", hint: "workshop video", size: "regular" },
+    { id: "3", type: "image", category: "media", src: "https://placehold.co/600x400.png", alt: "Interview on a TV show", hint: "tv interview", size: "regular" },
+    { id: "4", type: "image", category: "behind-the-scenes", src: "https://placehold.co/600x400.png", alt: "Preparing backstage for a keynote", hint: "backstage preparation", size: "regular" },
+    { id: "5", type: "image", category: "events", src: "https://placehold.co/600x400.png", alt: "Workshop with a corporate team", hint: "corporate workshop", size: "regular" },
+    { id: "6", type: "image", category: "media", src: "https://placehold.co/600x400.png", alt: "Podcast recording session", hint: "podcast recording", size: "large" },
+    { id: "7", type: "image", category: "events", src: "https://placehold.co/600x400.png", alt: "Panel discussion on branding", hint: "panel discussion", size: "regular" },
+    { id: "8", type: "image", category: "behind-the-scenes", src: "https://placehold.co/600x400.png", alt: "Meeting with a client", hint: "client meeting", size: "regular" },
   ]
 };
