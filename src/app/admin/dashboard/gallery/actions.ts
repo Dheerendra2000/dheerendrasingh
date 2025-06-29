@@ -9,19 +9,28 @@ import { db, initError } from '@/lib/firebase-admin'
 const galleryItemSchema = z.object({
   id: z.string(),
   type: z.enum(['image', 'video']),
-  src: z.string().min(1, { message: 'Image/Poster URL is required.'}).url({ message: 'URL must be valid.' }),
+  // Poster/Image URL, now conditionally required.
+  src: z.string().url({ message: 'URL must be a valid.' }).optional().or(z.literal('')),
   alt: z.string().min(1, { message: 'Alt text is required.' }),
   hint: z.string().optional(),
   category: z.string().min(1, { message: 'Category is required.' }),
-  // Allow videoSrc to be an optional, empty, or valid URL string.
+  // Video URL, now conditionally required.
   videoSrc: z.string().url({ message: 'Video URL must be a valid URL.' }).optional().or(z.literal('')),
   size: z.enum(['regular', 'large']).optional(),
 }).superRefine((data, ctx) => {
-    // If the type is 'video', the videoSrc must be a non-empty string.
+    // For 'image' items, the `src` (Image URL) is required.
+    if (data.type === 'image' && (!data.src || data.src.trim() === '')) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['src'],
+            message: 'Image URL is required for image items.',
+        });
+    }
+    // For 'video' items, the `videoSrc` (Video URL) is required. `src` (Poster URL) is optional.
     if (data.type === 'video' && (!data.videoSrc || data.videoSrc.trim() === '')) {
         ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            path: ['videoSrc'], // Point error to the videoSrc field
+            path: ['videoSrc'],
             message: 'A valid Video URL is required for video items.',
         });
     }
