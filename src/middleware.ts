@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+// This forces the middleware to run on Node.js, which is required for some of the APIs used in authentication.
+export const runtime = 'nodejs'
+
 const COOKIE_NAME = 'admin-session'
 
 export function middleware(request: NextRequest) {
