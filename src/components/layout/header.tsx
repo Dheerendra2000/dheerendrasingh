@@ -14,7 +14,6 @@ const navLinks = [
   { name: "Gallery", href: "#gallery" },
   { name: "Testimonials", href: "#testimonials" },
   { name: "Courses", href: "#courses" },
-  { name: "Feedback", href: "#feedback" },
 ]
 
 export default function Header() {

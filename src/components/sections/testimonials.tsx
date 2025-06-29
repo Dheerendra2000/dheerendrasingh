@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Quote, Terminal } from "lucide-react"
 import { getTestimonialsContent } from "@/lib/data/testimonials"
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
+import TestimonialForm from "./testimonial-form"
 
 export default async function TestimonialsSection() {
   const { testimonials, error } = await getTestimonialsContent();
@@ -74,6 +75,9 @@ export default async function TestimonialsSection() {
           <CarouselPrevious />
           <CarouselNext />
         </Carousel>
+        
+        <TestimonialForm />
+
       </div>
     </section>
   )

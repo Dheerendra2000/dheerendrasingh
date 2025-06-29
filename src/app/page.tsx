@@ -7,7 +7,6 @@ import GallerySection from '@/components/sections/gallery'
 import TestimonialsSection from '@/components/sections/testimonials'
 import CoursesSection from '@/components/sections/courses'
 import ContactSection from '@/components/sections/contact'
-import FeedbackSection from '@/components/sections/feedback'
 
 export default function Home() {
   return (
@@ -21,7 +20,6 @@ export default function Home() {
         <TestimonialsSection />
         <CoursesSection />
         <ContactSection />
-        <FeedbackSection />
       </main>
       <Footer />
     </div>
