@@ -1,7 +1,16 @@
-import type { ReactNode } from 'react';
+import { redirect } from 'next/navigation'
+import type { ReactNode } from 'react'
+import { checkAuth } from '@/lib/auth'
 
-// The middleware now handles authentication checks for all dashboard routes.
-// This layout is now only responsible for providing a consistent structure.
-export default function DashboardLayout({ children }: { children: ReactNode }) {
-  return <>{children}</>;
+export default async function DashboardLayout({ children }: { children: ReactNode }) {
+  const isAuthenticated = await checkAuth()
+
+  if (!isAuthenticated) {
+    const loginUrl = new URL('/admin/login', 'http://localhost')
+    // To-do: Find a way to get the current path to redirect back after login.
+    // loginUrl.searchParams.set('from', request.nextUrl.pathname)
+    redirect(loginUrl.pathname + loginUrl.search)
+  }
+
+  return <>{children}</>
 }

@@ -1,7 +1,14 @@
+import { redirect } from 'next/navigation'
+import { checkAuth } from '@/lib/auth'
 import LoginForm from './login-form'
 
-// The middleware now handles redirecting logged-in users away from this page.
-export default function AdminLoginPage() {
+export default async function AdminLoginPage() {
+  const isAuthenticated = await checkAuth()
+
+  if (isAuthenticated) {
+    redirect('/admin/dashboard')
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-secondary">
       <LoginForm />
