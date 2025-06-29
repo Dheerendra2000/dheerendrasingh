@@ -47,12 +47,20 @@ function SubmitButton() {
 
 function CategoryCombobox({ value, onChange, categories }: { value: string; onChange: (value: string) => void; categories: string[] }) {
   const [open, setOpen] = useState(false);
+  // Separate state to hold the search text from the input
+  const [searchText, setSearchText] = useState("");
 
-  // Find the correctly cased category from the list
+  // Find the correctly cased category from the list to display on the button
   const displayValue = categories.find(c => c.toLowerCase() === value?.toLowerCase()) || value;
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={(isOpen) => {
+      setOpen(isOpen);
+      if (!isOpen) {
+        // Clear search text when popover is closed
+        setSearchText("");
+      }
+    }}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -66,41 +74,53 @@ function CategoryCombobox({ value, onChange, categories }: { value: string; onCh
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
         <Command
-            value={value}
-            onValueChange={onChange}
-            filter={(value, search) => {
-              if (value.toLowerCase().includes(search.toLowerCase())) return 1
-              return 0
+            // We need to provide a filter function for CommandEmpty to work as expected
+            filter={(itemValue, search) => {
+              if (itemValue.toLowerCase().includes(search.toLowerCase())) return 1;
+              return 0;
             }}
         >
           <CommandInput
             placeholder="Search or type new..."
+            // Control the input's value with our state
+            value={searchText}
+            // Update the state as the user types
+            onValueChange={setSearchText}
           />
           <CommandList>
             <CommandEmpty>
-              <CommandItem
-                onSelect={() => {
-                  onChange(value) // Use the current input value as the new category
-                  setOpen(false)
-                }}
-              >
-                Create "{value}"
-              </CommandItem>
+              {/* Only show the 'Create' option if there is text in the input */}
+              {searchText.length > 0 && (
+                <CommandItem
+                  // When this item is selected...
+                  onSelect={() => {
+                    // ...update the form with the new category text...
+                    onChange(searchText);
+                    // ...and close the popover.
+                    setOpen(false);
+                  }}
+                >
+                  Create "{searchText}"
+                </CommandItem>
+              )}
             </CommandEmpty>
             <CommandGroup>
               {categories.map((category) => (
                 <CommandItem
                   key={category}
                   value={category}
+                  // When an existing category is selected...
                   onSelect={(currentValue) => {
-                    const newValue = currentValue === value?.toLowerCase() ? "" : category;
-                    onChange(newValue);
+                    // ...update the form with that category...
+                    onChange(currentValue);
+                    // ...and close the popover.
                     setOpen(false);
                   }}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
+                      // Check if this category is the currently selected one
                       value?.toLowerCase() === category.toLowerCase() ? "opacity-100" : "opacity-0"
                     )}
                   />
