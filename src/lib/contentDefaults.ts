@@ -1,13 +1,16 @@
+
 export type HomeContent = {
   heroTitle: string;
   heroTagline: string;
   videoUrl: string;
+  heroTitleColor: string;
 }
 
 export const defaultHomeContent: HomeContent = {
   heroTitle: "Dheerendra Singh",
   heroTagline: "Leading Public Speaker & Branding and PR Specialist",
   videoUrl: "https://videos.pexels.com/video-files/3209828/3209828-hd_1920_1080_25fps.mp4",
+  heroTitleColor: "#FFD700",
 };
 
 

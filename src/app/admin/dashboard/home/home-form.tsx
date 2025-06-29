@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useActionState, useEffect } from 'react'
@@ -23,6 +24,7 @@ type HomeContent = {
   heroTitle: string;
   heroTagline: string;
   videoUrl: string;
+  heroTitleColor: string;
 }
 
 export default function HomeForm({ content }: { content: HomeContent }) {
@@ -55,6 +57,12 @@ export default function HomeForm({ content }: { content: HomeContent }) {
             <Label htmlFor="heroTagline">Hero Tagline</Label>
             <Input id="heroTagline" name="heroTagline" defaultValue={content.heroTagline} />
             {state?.errors?.heroTagline && <p className="text-sm font-medium text-destructive">{state.errors.heroTagline[0]}</p>}
+        </div>
+        <div className="space-y-2">
+            <Label htmlFor="heroTitleColor">Hero Title Color</Label>
+            <Input id="heroTitleColor" name="heroTitleColor" defaultValue={content.heroTitleColor} />
+            {state?.errors?.heroTitleColor && <p className="text-sm font-medium text-destructive">{state.errors.heroTitleColor[0]}</p>}
+            <p className="text-xs text-muted-foreground">Enter a hex color code (e.g., #FFD700 for gold).</p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="videoUrl">Background Video URL</Label>
