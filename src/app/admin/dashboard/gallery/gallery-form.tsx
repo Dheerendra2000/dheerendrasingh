@@ -65,7 +65,9 @@ function CategoryCombobox({ value, onChange, categories }: { value: string; onCh
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <Command 
+        <Command
+            value={value}
+            onValueChange={onChange}
             filter={(value, search) => {
               if (value.toLowerCase().includes(search.toLowerCase())) return 1
               return 0
@@ -73,8 +75,6 @@ function CategoryCombobox({ value, onChange, categories }: { value: string; onCh
         >
           <CommandInput
             placeholder="Search or type new..."
-            value={value}
-            onValueChange={onChange}
           />
           <CommandList>
             <CommandEmpty>
