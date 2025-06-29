@@ -1,9 +1,9 @@
 
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { logout } from '../actions'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { FileText, MessageSquare, Images, Home, User, Award } from 'lucide-react'
+import LogoutButton from './logout-button'
 
 export default function AdminDashboard() {
   return (
@@ -13,9 +13,7 @@ export default function AdminDashboard() {
           <h1 className="text-2xl font-bold font-headline text-primary">
             Admin Dashboard
           </h1>
-          <form action={logout}>
-            <Button variant="outline">Logout</Button>
-          </form>
+          <LogoutButton />
         </div>
       </header>
       <main className="flex-grow container mx-auto p-4 md:p-8">
