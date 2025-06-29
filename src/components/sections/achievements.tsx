@@ -47,11 +47,10 @@ export default function AchievementsSection() {
                   </div>
                   <Card className="shadow-lg transform hover:scale-105 transition-transform duration-300">
                     <CardHeader>
-                      <div className="flex items-center gap-4 mb-2 justify-center md:justify-start">
-                        <div className={`flex items-center ${index % 2 === 0 ? '' : 'md:flex-row-reverse'}`}>
-                           <item.icon className="h-8 w-8 text-accent" />
-                           <CardTitle className="ml-4 md:ml-0 md:mr-4">{item.title}</CardTitle>
-                           { index % 2 === 0 && <CardTitle className="ml-4">{item.title}</CardTitle> }
+                      <div className={`flex items-center gap-4 mb-2 justify-center ${index % 2 === 0 ? 'md:justify-end' : 'md:justify-start'}`}>
+                        <div className={`flex items-center gap-4 ${index % 2 === 0 ? 'md:flex-row-reverse' : ''}`}>
+                           <item.icon className="h-8 w-8 text-accent flex-shrink-0" />
+                           <CardTitle>{item.title}</CardTitle>
                         </div>
                       </div>
                       <p className="font-bold text-accent">{item.year}</p>

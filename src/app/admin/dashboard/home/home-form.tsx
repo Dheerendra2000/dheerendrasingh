@@ -57,6 +57,7 @@ export default function HomeForm({ content }: { content: HomeContent }) {
           <div className="space-y-2">
             <Label htmlFor="videoUrl">Background Video URL</Label>
             <Input id="videoUrl" name="videoUrl" type="url" defaultValue={content.videoUrl} />
+            <p className="text-sm text-muted-foreground pt-1">Provide a direct URL to an MP4 video file. YouTube or Vimeo links will not work.</p>
             {state?.errors?.videoUrl && <p className="text-sm font-medium text-destructive">{state.errors.videoUrl[0]}</p>}
         </div>
         <SubmitButton />
