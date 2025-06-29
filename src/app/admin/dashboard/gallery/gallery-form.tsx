@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useState } from 'react'
 import { useFormStatus } from 'react-dom'
-import { DragDropContext, Droppable, Draggable, type DropResult } from 'react-beautiful-dnd'
+import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -105,7 +105,7 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
         
         {isBrowser ? (
           <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="galleryItems" isDropDisabled={false} isCombineEnabled={false}>
+            <Droppable droppableId="galleryItems">
               {(provided) => (
                 <div 
                   className="space-y-6"
