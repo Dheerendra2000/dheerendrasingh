@@ -1,6 +1,7 @@
+
 'use client'
 
-import { useActionState, useEffect, useState } from 'react'
+import { useActionState, useEffect, useState, useMemo } from 'react'
 import { useFormStatus } from 'react-dom'
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import { Button } from '@/components/ui/button'
@@ -47,17 +48,19 @@ function SubmitButton() {
 
 function CategoryCombobox({ value, onChange, categories }: { value: string; onChange: (value: string) => void; categories: string[] }) {
   const [open, setOpen] = useState(false);
-  // Separate state to hold the search text from the input
   const [searchText, setSearchText] = useState("");
 
-  // Find the correctly cased category from the list to display on the button
   const displayValue = categories.find(c => c.toLowerCase() === value?.toLowerCase()) || value;
+  
+  const hasExactMatch = useMemo(() => {
+    if (!searchText) return false;
+    return categories.some(c => c.toLowerCase() === searchText.toLowerCase());
+  }, [categories, searchText]);
 
   return (
     <Popover open={open} onOpenChange={(isOpen) => {
       setOpen(isOpen);
       if (!isOpen) {
-        // Clear search text when popover is closed
         setSearchText("");
       }
     }}>
@@ -74,7 +77,8 @@ function CategoryCombobox({ value, onChange, categories }: { value: string; onCh
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
         <Command
-            // We need to provide a filter function for CommandEmpty to work as expected
+            value={searchText}
+            onValueChange={setSearchText}
             filter={(itemValue, search) => {
               if (itemValue.toLowerCase().includes(search.toLowerCase())) return 1;
               return 0;
@@ -82,45 +86,37 @@ function CategoryCombobox({ value, onChange, categories }: { value: string; onCh
         >
           <CommandInput
             placeholder="Search or type new..."
-            // Control the input's value with our state
-            value={searchText}
-            // Update the state as the user types
-            onValueChange={setSearchText}
           />
           <CommandList>
-            <CommandEmpty>
-              {/* Only show the 'Create' option if there is text in the input */}
-              {searchText.length > 0 && (
-                <CommandItem
-                  // When this item is selected...
-                  onSelect={() => {
-                    // ...update the form with the new category text...
-                    onChange(searchText);
-                    // ...and close the popover.
-                    setOpen(false);
-                  }}
-                >
-                  Create "{searchText}"
-                </CommandItem>
-              )}
-            </CommandEmpty>
+            <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup>
+              {searchText && !hasExactMatch ? (
+                  <CommandItem
+                    key={searchText}
+                    value={searchText}
+                    onSelect={() => {
+                      onChange(searchText);
+                      setSearchText("");
+                      setOpen(false);
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create "{searchText}"
+                  </CommandItem>
+              ) : null}
               {categories.map((category) => (
                 <CommandItem
                   key={category}
                   value={category}
-                  // When an existing category is selected...
                   onSelect={(currentValue) => {
-                    // ...update the form with that category...
                     onChange(currentValue);
-                    // ...and close the popover.
+                    setSearchText("");
                     setOpen(false);
                   }}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      // Check if this category is the currently selected one
                       value?.toLowerCase() === category.toLowerCase() ? "opacity-100" : "opacity-0"
                     )}
                   />
