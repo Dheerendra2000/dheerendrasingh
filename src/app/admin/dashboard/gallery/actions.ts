@@ -7,20 +7,24 @@ import { db, initError } from '@/lib/firebase-admin'
 const galleryItemSchema = z.object({
   id: z.string(),
   type: z.enum(['image', 'video']),
-  src: z.string().url({ message: 'Image/Poster URL must be a valid URL.' }),
+  src: z.string().nonempty({ message: 'Image/Poster URL is required.'}).url({ message: 'Image/Poster URL must be a valid URL.' }),
   alt: z.string().min(1, { message: 'Alt text is required.' }),
   hint: z.string().optional(),
   category: z.string().min(1, { message: 'Category is required.' }),
-  videoSrc: z.string().url({ message: 'Video URL must be a valid URL.' }).optional().or(z.literal('')),
+  videoSrc: z.string().optional(),
   size: z.enum(['regular', 'large']).optional(),
-}).refine(data => {
-    if (data.type === 'video') {
-        return !!data.videoSrc;
+}).superRefine((data, ctx) => {
+  if (data.type === 'video') {
+    const parseResult = z.string().url().safeParse(data.videoSrc);
+    if (!parseResult.success) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.invalid_string,
+        validation: 'url',
+        message: 'A valid Video URL is required for video items.',
+        path: ['videoSrc'],
+      });
     }
-    return true;
-}, {
-    message: 'A Video URL is required for items of type "video".',
-    path: ['videoSrc'],
+  }
 });
 
 
@@ -91,12 +95,14 @@ export async function updateGalleryContent(prevState: any, formData: FormData) {
       }
     }
   } else {
-    console.error('Validation errors:', result.error.flatten().fieldErrors)
+    console.error('Validation errors:', result.error.flatten());
     const formErrors = result.error.flatten().formErrors.join(', ');
+    const fallbackMessage = 'Validation failed. Check that all URLs are valid and all required fields (like Alt Text and Category) are filled for every item.';
+
     return {
         success: false,
         message: `Please correct the errors and try again. ${formErrors}`,
-        errors: { _form: formErrors || 'Validation failed. Please check all fields.' },
+        errors: { _form: formErrors || fallbackMessage },
     }
   }
 }
