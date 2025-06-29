@@ -156,3 +156,53 @@ export const defaultTestimonialsContent: TestimonialsContent = {
     },
   ]
 };
+
+export type Course = {
+  id: string;
+  title: string;
+  description: string;
+  thumbnail: string;
+  hint: string;
+  price: string;
+  category: string;
+  link: string;
+}
+
+export type CoursesContent = {
+  courses: Course[];
+}
+
+export const defaultCoursesContent: CoursesContent = {
+  courses: [
+    {
+      id: "1",
+      title: "Mastering Public Speaking",
+      description: "Conquer your fear of public speaking and learn to deliver powerful, persuasive presentations.",
+      thumbnail: "https://placehold.co/600x400.png",
+      hint: "presentation stage",
+      price: "$299",
+      category: "Communication",
+      link: "#",
+    },
+    {
+      id: "2",
+      title: "Personal Branding Blueprint",
+      description: "Craft a compelling personal brand that opens doors to new opportunities and establishes you as a thought leader.",
+      thumbnail: "https://placehold.co/600x400.png",
+      hint: "personal branding",
+      price: "$349",
+      category: "Branding",
+      link: "#",
+    },
+    {
+      id: "3",
+      title: "PR & Media Relations Mastery",
+      description: "Learn how to effectively engage with the media, manage your public image, and secure positive press coverage.",
+      thumbnail: "https://placehold.co/600x400.png",
+      hint: "media interview",
+      price: "$499",
+      category: "PR",
+      link: "#",
+    },
+  ]
+};

@@ -1,9 +1,14 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Terminal } from 'lucide-react'
+import { getCoursesContent } from '@/lib/data/courses'
+import CoursesForm from './courses-form'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 export default async function ManageCoursesPage() {
+  const content = await getCoursesContent();
+
   return (
     <div className="flex min-h-screen flex-col bg-secondary">
        <header className="bg-background border-b shadow-sm">
@@ -21,13 +26,23 @@ export default async function ManageCoursesPage() {
         </div>
       </header>
       <main className="flex-grow container mx-auto p-4 md:p-8">
-        <Card className="max-w-2xl mx-auto">
+        <Card className="max-w-4xl mx-auto">
             <CardHeader>
                 <CardTitle>Course Listings</CardTitle>
-                <CardDescription>Update your course listings.</CardDescription>
+                <CardDescription>Add, edit, or remove your course listings.</CardDescription>
             </CardHeader>
             <CardContent>
-                <p>Management form for the course listings will be implemented here soon.</p>
+                {content.error ? (
+                  <Alert variant="destructive">
+                    <Terminal className="h-4 w-4" />
+                    <AlertTitle>Could not load courses data</AlertTitle>
+                    <AlertDescription>
+                      <p>{content.error}</p>
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <CoursesForm content={content} />
+                )}
             </CardContent>
         </Card>
       </main>
