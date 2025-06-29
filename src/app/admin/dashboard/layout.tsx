@@ -1,19 +1,45 @@
-import { redirect } from 'next/navigation'
-import type { ReactNode } from 'react'
-import { verifySessionCookie } from '@/lib/auth'
-import { headers } from 'next/headers'
+'use client'
 
-export default async function DashboardLayout({ children }: { children: ReactNode }) {
-  const session = await verifySessionCookie()
-  const pathname = headers().get('x-next-pathname') || '/admin/dashboard'
+import { useState, useEffect, type ReactNode } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
+import { onAuthStateChanged, type User } from 'firebase/auth'
+import { auth } from '@/lib/firebase'
+import { Loader2 } from 'lucide-react'
 
-  if (!session) {
-    // Build a URL that preserves the original path the user tried to access.
-    const loginUrl = new URL('/admin/login', 'http://localhost:3000') // Base URL is a placeholder.
+export default function DashboardLayout({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+  const pathname = usePathname()
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser)
+      setLoading(false)
+    })
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-secondary">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (!user) {
+    const loginUrl = new URL('/admin/login', window.location.origin)
     loginUrl.searchParams.set('from', pathname)
-    
-    // Redirect to the login page.
-    redirect(loginUrl.toString())
+    router.replace(loginUrl.toString())
+    return (
+       <div className="flex min-h-screen items-center justify-center bg-secondary">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+        <p className="ml-4">Redirecting to login...</p>
+      </div>
+    )
   }
 
   return <>{children}</>

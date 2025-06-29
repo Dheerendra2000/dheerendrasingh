@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
-import { createSessionCookie } from '@/lib/auth'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,8 +14,8 @@ import { useToast } from '@/hooks/use-toast'
 export default function LoginForm() {
   const { toast } = useToast()
   const searchParams = useSearchParams()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState('admin@example.com')
+  const [password, setPassword] = useState('password')
   const [isLoading, setIsLoading] = useState(false)
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -25,34 +24,23 @@ export default function LoginForm() {
 
     try {
       // 1. Sign in with Firebase on the client.
-      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+      await signInWithEmailAndPassword(auth, email, password)
       
-      // 2. Get the ID token from the signed-in user.
-      const idToken = await userCredential.user.getIdToken()
-
-      // 3. Send the ID token to the server to create a session cookie.
-      const result = await createSessionCookie(idToken)
-
-      if (result.success) {
-        toast({
-          title: 'Login Successful',
-          description: 'Redirecting to dashboard...',
-        })
-        
-        // 4. Redirect to the original destination or the dashboard.
-        const from = searchParams.get('from') || '/admin/dashboard'
-        window.location.href = from;
-      } else {
-        throw new Error(result.message || 'Could not create session.')
-      }
+      // 2. On success, show toast and redirect with a full page reload.
+      // The full reload is crucial to ensure the dashboard layout re-evaluates auth state.
+      toast({
+        title: 'Login Successful',
+        description: 'Redirecting to dashboard...',
+      })
+      
+      const from = searchParams.get('from') || '/admin/dashboard'
+      window.location.href = from;
 
     } catch (error: any) {
       const errorCode = error.code;
-      let errorMessage = error.message || 'An unknown error occurred. Please try again.';
-      if (errorCode === 'auth/invalid-credential' || errorCode === 'auth/invalid-email' || errorCode === 'auth/wrong-password') {
+      let errorMessage = 'An unknown error occurred. Please try again.';
+       if (errorCode === 'auth/invalid-credential' || errorCode === 'auth/invalid-email' || errorCode === 'auth/wrong-password' || errorCode === 'auth/user-not-found') {
         errorMessage = 'Invalid email or password. Please try again.';
-      } else if (errorCode === 'auth/user-not-found') {
-          errorMessage = 'No user found with this email.';
       }
       console.error("Authentication Error:", error)
       toast({
