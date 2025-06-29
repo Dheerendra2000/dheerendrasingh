@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useActionState, useEffect } from 'react'
+import { useActionState, useEffect, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,9 +28,24 @@ type HomeContent = {
   heroTaglineColor: string;
 }
 
+const colorPalette = [
+  '#FFD700', // Gold (Accent)
+  '#224270', // Deep Blue (Primary)
+  '#F0F4F8', // Light Gray (Background)
+  '#FFFFFF', // White
+  '#000000', // Black
+  '#DC2626', // Red
+  '#2563EB', // Blue
+  '#16A34A', // Green
+];
+
+
 export default function HomeForm({ content }: { content: HomeContent }) {
   const [state, formAction] = useActionState(updateHomeContent, null)
   const { toast } = useToast()
+  const [titleColor, setTitleColor] = useState(content.heroTitleColor);
+  const [taglineColor, setTaglineColor] = useState(content.heroTaglineColor);
+
 
   useEffect(() => {
     if (state?.success) {
@@ -61,15 +76,49 @@ export default function HomeForm({ content }: { content: HomeContent }) {
         </div>
         <div className="space-y-2">
             <Label htmlFor="heroTitleColor">Hero Title Color</Label>
-            <Input id="heroTitleColor" name="heroTitleColor" defaultValue={content.heroTitleColor} />
+            <Input 
+                id="heroTitleColor" 
+                name="heroTitleColor" 
+                value={titleColor}
+                onChange={(e) => setTitleColor(e.target.value)}
+            />
+             <div className="flex flex-wrap gap-2 pt-2">
+                {colorPalette.map(color => (
+                    <button
+                        key={`title-${color}`}
+                        type="button"
+                        className="h-8 w-8 rounded-full border-2 transition-all"
+                        style={{ backgroundColor: color, borderColor: titleColor.toLowerCase() === color.toLowerCase() ? 'hsl(var(--ring))' : 'hsl(var(--border))' }}
+                        onClick={() => setTitleColor(color)}
+                        aria-label={`Set title color to ${color}`}
+                    />
+                ))}
+            </div>
             {state?.errors?.heroTitleColor && <p className="text-sm font-medium text-destructive">{state.errors.heroTitleColor[0]}</p>}
-            <p className="text-xs text-muted-foreground">Enter a hex color code (e.g., #FFD700 for gold).</p>
+            <p className="text-xs text-muted-foreground">Enter a hex color code or select from the palette.</p>
         </div>
         <div className="space-y-2">
             <Label htmlFor="heroTaglineColor">Hero Tagline Color</Label>
-            <Input id="heroTaglineColor" name="heroTaglineColor" defaultValue={content.heroTaglineColor} />
+            <Input 
+                id="heroTaglineColor" 
+                name="heroTaglineColor" 
+                value={taglineColor}
+                onChange={(e) => setTaglineColor(e.target.value)}
+            />
+            <div className="flex flex-wrap gap-2 pt-2">
+                {colorPalette.map(color => (
+                    <button
+                        key={`tagline-${color}`}
+                        type="button"
+                        className="h-8 w-8 rounded-full border-2 transition-all"
+                        style={{ backgroundColor: color, borderColor: taglineColor.toLowerCase() === color.toLowerCase() ? 'hsl(var(--ring))' : 'hsl(var(--border))' }}
+                        onClick={() => setTaglineColor(color)}
+                        aria-label={`Set tagline color to ${color}`}
+                    />
+                ))}
+            </div>
             {state?.errors?.heroTaglineColor && <p className="text-sm font-medium text-destructive">{state.errors.heroTaglineColor[0]}</p>}
-            <p className="text-xs text-muted-foreground">Enter a hex color code (e.g., #F8FAFC for light gray).</p>
+            <p className="text-xs text-muted-foreground">Enter a hex color code or select from the palette.</p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="videoUrl">Background Video URL</Label>
