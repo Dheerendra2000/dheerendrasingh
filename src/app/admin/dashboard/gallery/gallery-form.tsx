@@ -105,7 +105,7 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
         
         {isBrowser ? (
           <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="galleryItems">
+            <Droppable droppableId="galleryItems" isDropDisabled={false}>
               {(provided) => (
                 <div 
                   className="space-y-6"
@@ -181,7 +181,7 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
                                       <Input 
                                           id={`src-${item.id}`}
                                           type="url"
-                                          value={item.src}
+                                          value={item.src || ''}
                                           onChange={(e) => handleInputChange(item.id, 'src', e.target.value)}
                                           placeholder="https://placehold.co/600x400.png"
                                       />
@@ -205,7 +205,7 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
                                           <Label htmlFor={`category-${item.id}`}>Category</Label>
                                           <Input 
                                               id={`category-${item.id}`}
-                                              value={item.category}
+                                              value={item.category || ''}
                                               onChange={(e) => handleInputChange(item.id, 'category', e.target.value)}
                                               placeholder="e.g., events"
                                           />
@@ -224,7 +224,7 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
                                       <Label htmlFor={`alt-${item.id}`}>Alt Text (for accessibility)</Label>
                                       <Input 
                                           id={`alt-${item.id}`}
-                                          value={item.alt}
+                                          value={item.alt || ''}
                                           onChange={(e) => handleInputChange(item.id, 'alt', e.target.value)}
                                           placeholder="e.g., Speaking at a major tech conference"
                                       />
