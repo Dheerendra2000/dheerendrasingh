@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { logout } from '../actions'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText, MessageSquare, Images, Home, User } from 'lucide-react'
+import { FileText, MessageSquare, Images, Home, User, Award } from 'lucide-react'
 
 export default function AdminDashboard() {
   return (
@@ -53,7 +53,7 @@ export default function AdminDashboard() {
                 <CardContent>
                     <p className="text-xs text-muted-foreground">Update your 'About Me' section.</p>
                      <Button variant="link" className="p-0 h-auto mt-4 text-primary">Manage About</Button>
-                </DCardContent>
+                </CardContent>
             </Card>
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -63,6 +63,16 @@ export default function AdminDashboard() {
                 <CardContent>
                     <p className="text-xs text-muted-foreground">Update your image gallery.</p>
                     <Button variant="link" className="p-0 h-auto mt-4 text-primary">Manage Gallery</Button>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Achievements</CardTitle>
+                    <Award className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <p className="text-xs text-muted-foreground">Manage your achievements timeline.</p>
+                    <Button variant="link" className="p-0 h-auto mt-4 text-primary">Manage Achievements</Button>
                 </CardContent>
             </Card>
             <Card>
