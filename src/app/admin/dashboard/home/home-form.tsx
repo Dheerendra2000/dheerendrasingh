@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { updateHomeContent } from './actions'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Lightbulb } from 'lucide-react'
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -54,11 +56,26 @@ export default function HomeForm({ content }: { content: HomeContent }) {
             <Input id="heroTagline" name="heroTagline" defaultValue={content.heroTagline} />
             {state?.errors?.heroTagline && <p className="text-sm font-medium text-destructive">{state.errors.heroTagline[0]}</p>}
         </div>
-          <div className="space-y-2">
-            <Label htmlFor="videoUrl">Background Video URL</Label>
-            <Input id="videoUrl" name="videoUrl" type="url" defaultValue={content.videoUrl} />
-            <p className="text-sm text-muted-foreground pt-1">Provide a direct URL to an MP4 video file. YouTube or Vimeo links will not work.</p>
-            {state?.errors?.videoUrl && <p className="text-sm font-medium text-destructive">{state.errors.videoUrl[0]}</p>}
+        <div className="space-y-2">
+          <Label htmlFor="videoUrl">Background Video URL</Label>
+          <Input id="videoUrl" name="videoUrl" type="url" defaultValue={content.videoUrl} />
+          {state?.errors?.videoUrl && <p className="text-sm font-medium text-destructive">{state.errors.videoUrl[0]}</p>}
+          <Alert className="!mt-4">
+            <Lightbulb className="h-4 w-4" />
+            <AlertTitle>How to get a video URL</AlertTitle>
+            <AlertDescription>
+              <ul className="list-disc pl-5 space-y-1 mt-2 text-xs text-muted-foreground">
+                <li>The URL must link directly to a video file (e.g., end in .mp4).</li>
+                <li>YouTube or Vimeo links will not work.</li>
+                <li>
+                  Find free stock videos on sites like <strong>Pexels</strong> or <strong>Pixabay</strong>.
+                </li>
+                <li>
+                  On those sites, you can often right-click the download button and choose "Copy Link Address" to get the direct URL.
+                </li>
+              </ul>
+            </AlertDescription>
+          </Alert>
         </div>
         <SubmitButton />
     </form>
