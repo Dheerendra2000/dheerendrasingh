@@ -52,9 +52,9 @@ function CategoryCombobox({ value, onChange, categories }: { value: string; onCh
 
   const displayValue = categories.find(c => c.toLowerCase() === value?.toLowerCase()) || value;
   
-  const hasExactMatch = useMemo(() => {
+  const showCreateOption = useMemo(() => {
     if (!searchText) return false;
-    return categories.some(c => c.toLowerCase() === searchText.toLowerCase());
+    return !categories.some(c => c.toLowerCase() === searchText.toLowerCase());
   }, [categories, searchText]);
 
   return (
@@ -79,10 +79,6 @@ function CategoryCombobox({ value, onChange, categories }: { value: string; onCh
         <Command
             value={searchText}
             onValueChange={setSearchText}
-            filter={(itemValue, search) => {
-              if (itemValue.toLowerCase().includes(search.toLowerCase())) return 1;
-              return 0;
-            }}
         >
           <CommandInput
             placeholder="Search or type new..."
@@ -90,7 +86,7 @@ function CategoryCombobox({ value, onChange, categories }: { value: string; onCh
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup>
-              {searchText && !hasExactMatch ? (
+              {showCreateOption && (
                   <CommandItem
                     key={searchText}
                     value={searchText}
@@ -103,13 +99,13 @@ function CategoryCombobox({ value, onChange, categories }: { value: string; onCh
                     <Plus className="mr-2 h-4 w-4" />
                     Create "{searchText}"
                   </CommandItem>
-              ) : null}
+              )}
               {categories.map((category) => (
                 <CommandItem
                   key={category}
                   value={category}
-                  onSelect={(currentValue) => {
-                    onChange(currentValue);
+                  onSelect={() => {
+                    onChange(category);
                     setSearchText("");
                     setOpen(false);
                   }}
