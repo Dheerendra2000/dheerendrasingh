@@ -23,6 +23,7 @@ type FirebaseAdmin = {
     db: admin.firestore.Firestore | null;
     adminAuth: admin.auth.Auth | null;
     initError: string | null;
+    clientEmail: string | null;
 }
 
 function initializeFirebaseAdmin(): FirebaseAdmin {
@@ -32,7 +33,8 @@ function initializeFirebaseAdmin(): FirebaseAdmin {
         app,
         db: getFirestore(app),
         adminAuth: app.auth(),
-        initError: null
+        initError: null,
+        clientEmail: null, // Not available on hot-reload
     };
   }
 
@@ -42,10 +44,10 @@ function initializeFirebaseAdmin(): FirebaseAdmin {
 
   const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
 
-  if (!serviceAccountKey || serviceAccountKey.trim() === 'PASTE_YOUR_SERVICE_ACCOUNT_KEY_JSON_HERE') {
+  if (!serviceAccountKey || serviceAccountKey.trim() === 'PASTE_YOUR_NEW_SERVICE_ACCOUNT_KEY_JSON_HERE') {
     const errorMsg = 'SETUP REQUIRED: The FIREBASE_SERVICE_ACCOUNT_KEY is missing. Please open the `.env` file in your project root and paste your service account JSON credentials into it. The server cannot connect to the database without it.';
     console.error(errorMsg);
-    return { app: null, db: null, adminAuth: null, initError: errorMsg };
+    return { app: null, db: null, adminAuth: null, initError: errorMsg, clientEmail: null };
   }
 
   try {
@@ -57,14 +59,15 @@ function initializeFirebaseAdmin(): FirebaseAdmin {
         app,
         db: getFirestore(app),
         adminAuth: app.auth(),
-        initError: null
+        initError: null,
+        clientEmail: serviceAccount.client_email,
     };
   } catch (error) {
     console.error('Error parsing FIREBASE_SERVICE_ACCOUNT_KEY:', error);
     const errorMsg = 'The FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not a valid JSON string. Please ensure you have copied the entire JSON object from your service account file.';
-    return { app: null, db: null, adminAuth: null, initError: errorMsg };
+    return { app: null, db: null, adminAuth: null, initError: errorMsg, clientEmail: null };
   }
 }
 
-const { app, db, adminAuth, initError } = initializeFirebaseAdmin();
-export { db, adminAuth, initError };
+const { app, db, adminAuth, initError, clientEmail } = initializeFirebaseAdmin();
+export { db, adminAuth, initError, clientEmail };

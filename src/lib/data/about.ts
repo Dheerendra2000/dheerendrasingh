@@ -1,4 +1,4 @@
-import { db, initError } from '@/lib/firebase-admin';
+import { db, initError, clientEmail } from '@/lib/firebase-admin';
 import { defaultAboutContent, type AboutContent } from '@/lib/contentDefaults';
 
 const contentCollection = db?.collection('content');
@@ -23,7 +23,7 @@ export async function getAboutContent(): Promise<AboutContent & { error?: string
   } catch (error: any) {
     console.error("Failed to fetch about content from Firestore, falling back to default content. Error:", error);
     const errorMessage = error.code === 'permission-denied' || error.code === 7
-      ? "Firestore permission denied. Please ensure the service account has the 'Cloud Datastore User' or 'Editor' role in your Google Cloud project's IAM settings."
+      ? `Firestore permission denied for service account: ${clientEmail}. Please ensure this account has the 'Cloud Datastore User' or 'Editor' role in your Google Cloud project's IAM settings.`
       : "An unknown error occurred while fetching content from Firestore.";
     // On any error (e.g., permissions), fall back to default content for graceful failure
     return { ...defaultAboutContent, error: errorMessage };

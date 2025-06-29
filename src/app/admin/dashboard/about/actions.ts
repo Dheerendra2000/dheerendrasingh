@@ -2,7 +2,7 @@
 
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
-import { db, initError } from '@/lib/firebase-admin'
+import { db, initError, clientEmail } from '@/lib/firebase-admin'
 
 const aboutContentSchema = z.object({
   heading: z.string().min(1, { message: 'Heading is required.' }),
@@ -55,7 +55,7 @@ export async function updateAboutContent(prevState: any, formData: FormData) {
     } catch (e: any) {
       console.error('Failed to write about content to Firestore:', e)
        const userFriendlyMessage = e.code === 7 // PERMISSION_DENIED
-        ? "Save failed: Permission Denied. Please ensure your service account has the 'Cloud Datastore User' or 'Editor' role in Google Cloud IAM."
+        ? `Save failed: Permission Denied for service account: ${clientEmail}. Please ensure this account has the 'Cloud Datastore User' or 'Editor' role in Google Cloud IAM.`
         : 'Failed to save content. A server error occurred.'
 
       return {
