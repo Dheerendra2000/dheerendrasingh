@@ -1,9 +1,8 @@
 'use server'
 
 import { z } from 'zod'
-import fs from 'fs/promises'
-import path from 'path'
 import { revalidatePath } from 'next/cache'
+import { db } from '@/lib/firebase-admin'
 
 const aboutContentSchema = z.object({
   heading: z.string().min(1, { message: 'Heading is required.' }),
@@ -13,8 +12,6 @@ const aboutContentSchema = z.object({
   imageUrl: z.string().url({ message: 'Please enter a valid image URL.' }),
   imageHint: z.string().max(20, { message: "Hint can't be more than two words." }).optional(),
 })
-
-const contentFilePath = path.join(process.cwd(), 'src', 'lib', 'content', 'about.json');
 
 // This function is designed to be used in a useActionState hook.
 export async function updateAboutContent(prevState: any, formData: FormData) {
@@ -37,22 +34,22 @@ export async function updateAboutContent(prevState: any, formData: FormData) {
         highlights: highlightsArray,
       };
       
-      await fs.writeFile(contentFilePath, JSON.stringify(contentToSave, null, 2));
+      await db.collection('content').doc('about').set(contentToSave, { merge: true });
       revalidatePath('/'); // Revalidate the home page to show new content
-      revalidatePath('/admin/dashboard/about'); // Revalidate this page to show new content in form
+      revalidatePath('/admin/dashboard/about'); // Revalidate this page
       return { 
           success: true,
           message: 'About page content updated successfully!',
           errors: null,
           error: null,
       }
-    } catch (e) {
-      console.error('Failed to write about content file:', e)
+    } catch (e: any) {
+      console.error('Failed to write about content to Firestore:', e)
       return {
         success: false,
-        message: 'Failed to save content. Please try again later.',
+        message: 'Failed to save content. A server error occurred.',
         errors: null,
-        error: "File system error."
+        error: e.message || "Firestore error."
       }
     }
   } else {

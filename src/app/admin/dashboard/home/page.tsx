@@ -2,42 +2,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import fs from 'fs/promises'
-import path from 'path'
 import HomeForm from './home-form'
-
-type HomeContent = {
-  heroTitle: string;
-  heroTagline: string;
-  videoUrl: string;
-}
-
-async function getHomeContent(): Promise<HomeContent> {
-  const contentFilePath = path.join(process.cwd(), 'src', 'lib', 'content', 'home.json');
-  try {
-    const data = await fs.readFile(contentFilePath, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    // If file doesn't exist, create it with default content
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      const defaultContent: HomeContent = {
-        heroTitle: "Dheerendra Singh",
-        heroTagline: "Leading Public Speaker & Branding and PR Specialist",
-        videoUrl: "https://dummy-media.torchbox.com/media/hero-1920x1080.mp4",
-      };
-      await fs.mkdir(path.dirname(contentFilePath), { recursive: true });
-      await fs.writeFile(contentFilePath, JSON.stringify(defaultContent, null, 2));
-      return defaultContent;
-    }
-    console.error("Failed to read home content, using default values:", error);
-    // Fallback for other errors
-    return {
-      heroTitle: "Dheerendra Singh",
-      heroTagline: "Leading Public Speaker & Branding and PR Specialist",
-      videoUrl: "https://dummy-media.torchbox.com/media/hero-1920x1080.mp4",
-    };
-  }
-}
+import { getHomeContent } from '@/lib/data/home'
 
 
 export default async function ManageHomePage() {

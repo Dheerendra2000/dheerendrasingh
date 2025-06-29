@@ -1,32 +1,9 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import fs from 'fs/promises'
-import path from 'path'
-
-type HeroContent = {
-  heroTitle: string;
-  heroTagline: string;
-  videoUrl: string;
-}
-
-async function getHeroContent(): Promise<HeroContent> {
-  const contentFilePath = path.join(process.cwd(), 'src', 'lib', 'content', 'home.json');
-  try {
-    const data = await fs.readFile(contentFilePath, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error("Failed to read hero content, using fallback:", error);
-    // Fallback content in case the file doesn't exist or is invalid
-    return {
-      heroTitle: "Dheerendra Singh",
-      heroTagline: "Leading Public Speaker & Branding and PR Specialist",
-      videoUrl: "https://videos.pexels.com/video-files/3209828/3209828-hd_1920_1080_25fps.mp4",
-    };
-  }
-}
+import { getHomeContent } from "@/lib/data/home"
 
 export default async function HeroSection() {
-  const content = await getHeroContent();
+  const content = await getHomeContent();
 
   return (
     <section id="home" className="py-12 md:py-20 bg-background">

@@ -1,41 +1,8 @@
 import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/card"
 import { CheckCircle } from "lucide-react"
-import fs from 'fs/promises'
-import path from 'path'
+import { getAboutContent } from "@/lib/data/about"
 
-type AboutContent = {
-  imageUrl: string;
-  imageHint: string;
-  heading: string;
-  paragraph1: string;
-  paragraph2: string;
-  highlights: string[];
-}
-
-async function getAboutContent(): Promise<AboutContent> {
-  const contentFilePath = path.join(process.cwd(), 'src', 'lib', 'content', 'about.json');
-  try {
-    const data = await fs.readFile(contentFilePath, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    // This fallback is crucial if the file doesn't exist or is invalid.
-    // It should match the default content created in the admin page.
-    return {
-      imageUrl: "https://placehold.co/600x800.png",
-      imageHint: "professional portrait",
-      heading: "A Passion for Communication and Branding",
-      paragraph1: "Dheerendra Singh is a renowned public speaker and branding specialist with over a decade of experience in empowering individuals and organizations to communicate with impact and build unforgettable brands. His journey began with a passion for storytelling, which evolved into a mission to help others find their unique voice and leverage it for success.",
-      paragraph2: "Through dynamic keynote speeches, interactive workshops, and personalized coaching, Dheerendra has transformed leaders, entrepreneurs, and professionals across various industries, enabling them to master the art of public relations and strategic branding.",
-      highlights: [
-        "15+ years of experience in public speaking",
-        "Expert in personal and corporate branding",
-        "Featured in major media outlets",
-        "Helped 100+ clients build their brand presence",
-      ]
-    };
-  }
-}
 
 export default async function AboutSection() {
   const content = await getAboutContent();

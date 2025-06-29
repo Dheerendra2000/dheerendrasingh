@@ -1,17 +1,14 @@
 'use server'
 
 import { z } from 'zod'
-import fs from 'fs/promises'
-import path from 'path'
 import { revalidatePath } from 'next/cache'
+import { db } from '@/lib/firebase-admin'
 
 const homeContentSchema = z.object({
   heroTitle: z.string().min(1, { message: 'Hero title is required.' }),
   heroTagline: z.string().min(1, { message: 'Hero tagline is required.' }),
   videoUrl: z.string().url({ message: 'Please enter a valid URL for the video.' }),
 })
-
-const contentFilePath = path.join(process.cwd(), 'src', 'lib', 'content', 'home.json');
 
 // This function is designed to be used in a useActionState hook.
 export async function updateHomeContent(prevState: any, formData: FormData) {
@@ -25,7 +22,7 @@ export async function updateHomeContent(prevState: any, formData: FormData) {
 
   if (result.success) {
     try {
-      await fs.writeFile(contentFilePath, JSON.stringify(result.data, null, 2));
+      await db.collection('content').doc('home').set(result.data, { merge: true });
       revalidatePath('/'); // Revalidate the home page to show the new content
       return { 
           success: true,
@@ -33,13 +30,13 @@ export async function updateHomeContent(prevState: any, formData: FormData) {
           errors: null,
           error: null,
       }
-    } catch (e) {
-      console.error('Failed to write home content file:', e)
+    } catch (e: any) {
+      console.error('Failed to write home content to Firestore:', e)
       return {
         success: false,
-        message: 'Failed to save content. Please try again later.',
+        message: 'Failed to save content. A server error occurred.',
         errors: null,
-        error: "File system error."
+        error: e.message || "Firestore error."
       }
     }
   } else {
