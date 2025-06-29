@@ -1,37 +1,31 @@
+
 'use server'
 
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { db, initError } from '@/lib/firebase-admin'
 
-// Define separate schemas for each type of gallery item.
-const imageItemSchema = z.object({
+// A more robust schema using superRefine for conditional validation.
+const galleryItemSchema = z.object({
   id: z.string(),
-  type: z.literal('image'),
-  src: z.string().nonempty({ message: 'Image URL is required.'}).url({ message: 'Image URL must be a valid URL.' }),
+  type: z.enum(['image', 'video']),
+  src: z.string().nonempty({ message: 'Image/Poster URL is required.'}).url({ message: 'URL must be valid.' }),
   alt: z.string().min(1, { message: 'Alt text is required.' }),
   hint: z.string().optional(),
   category: z.string().min(1, { message: 'Category is required.' }),
-  videoSrc: z.string().optional(), // For images, videoSrc can be an empty string or undefined.
+  // Allow videoSrc to be an optional, empty, or valid URL string.
+  videoSrc: z.string().url({ message: 'Video URL must be a valid URL.' }).optional().or(z.literal('')),
   size: z.enum(['regular', 'large']).optional(),
+}).superRefine((data, ctx) => {
+    // If the type is 'video', the videoSrc must be a non-empty string.
+    if (data.type === 'video' && (!data.videoSrc || data.videoSrc.trim() === '')) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['videoSrc'], // Point error to the videoSrc field
+            message: 'A valid Video URL is required for video items.',
+        });
+    }
 });
-
-const videoItemSchema = z.object({
-  id: z.string(),
-  type: z.literal('video'),
-  src: z.string().nonempty({ message: 'Poster URL is required.'}).url({ message: 'Poster URL must be a valid URL.' }),
-  alt: z.string().min(1, { message: 'Alt text is required.' }),
-  hint: z.string().optional(),
-  category: z.string().min(1, { message: 'Category is required.' }),
-  videoSrc: z.string({ required_error: 'Video URL is required for video items.'}).nonempty({ message: 'Video URL is required for video items.'}).url({ message: 'Video URL must be a valid URL.'}),
-  size: z.enum(['regular', 'large']).optional(),
-});
-
-// Create a discriminated union based on the 'type' field.
-const galleryItemSchema = z.discriminatedUnion("type", [
-  imageItemSchema,
-  videoItemSchema,
-]);
 
 
 const galleryContentSchema = z.object({
@@ -77,7 +71,17 @@ export async function updateGalleryContent(prevState: any, formData: FormData) {
 
   if (result.success) {
     try {
-      await db.collection('content').doc('gallery').set(result.data, { merge: true });
+      // Ensure empty videoSrc is not saved for image types for cleaner data.
+      const cleanedData = {
+        ...result.data,
+        items: result.data.items.map(item => {
+          if (item.type === 'image') {
+            return { ...item, videoSrc: '' };
+          }
+          return item;
+        }),
+      };
+      await db.collection('content').doc('gallery').set(cleanedData, { merge: true });
       revalidatePath('/'); // Revalidate the home page
       revalidatePath('/admin/dashboard/gallery'); // Revalidate this page
       return { 
@@ -104,17 +108,7 @@ export async function updateGalleryContent(prevState: any, formData: FormData) {
     const flattenedErrors = result.error.flatten();
     console.error('Validation errors:', flattenedErrors);
     
-    // Check for discriminator error first
-    if (flattenedErrors.formErrors.length > 0 && flattenedErrors.formErrors[0].includes('discriminator')) {
-        const specificMessage = "Invalid item type detected. Please ensure every item is set to either 'Image' or 'Video'.";
-        return {
-            success: false,
-            message: specificMessage,
-            errors: { _form: specificMessage },
-        };
-    }
-
-    // Try to find a specific field error message
+    // Generate a specific and helpful error message.
     const fieldErrors = flattenedErrors.fieldErrors;
     const errorKeys = Object.keys(fieldErrors);
     let specificMessage = '';
@@ -128,6 +122,7 @@ export async function updateGalleryContent(prevState: any, formData: FormData) {
         const fieldName = match[2];
         specificMessage = `Error on item #${itemIndex} in the '${fieldName}' field: ${errorMessage}`;
       } else {
+        // Fallback for non-item-specific errors
         specificMessage = errorMessage;
       }
     }
