@@ -22,10 +22,12 @@ export async function getHomeContent(): Promise<HomeContent & { error?: string }
     return doc.data() as HomeContent;
   } catch (error: any) {
     console.error("Failed to fetch home content from Firestore, falling back to default content. Error:", error);
-    const errorMessage = error.code === 'permission-denied' || error.code === 7
-      ? `Firestore permission denied for service account: ${clientEmail}. Please ensure this account has the 'Cloud Datastore User' or 'Editor' role in your Google Cloud project's IAM settings.`
-      : "An unknown error occurred while fetching content from Firestore.";
-    // On any error, fall back to default content for graceful failure
+    let errorMessage = "An unknown server error occurred while fetching content.";
+    if (error.code === 7) { // PERMISSION_DENIED
+        errorMessage = `Firestore Permission Denied. Since you've already set the roles, this is likely a temporary delay. Please wait a moment and refresh. If the problem continues, also ensure the "Cloud Firestore API" is enabled in your Google Cloud Console.`;
+    } else if (error.message?.includes('Cloud Firestore API has not been used')) {
+        errorMessage = `Action Required: The Firestore database has not been created for this project. Please go to the Firebase Console, find "Firestore Database" in the "Build" menu, and click "Create database".`;
+    }
     return {...defaultHomeContent, error: errorMessage };
   }
 }

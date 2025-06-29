@@ -41,9 +41,12 @@ export async function updateHomeContent(prevState: any, formData: FormData) {
       }
     } catch (e: any) {
       console.error('Failed to write home content to Firestore:', e)
-       const userFriendlyMessage = e.code === 7 // PERMISSION_DENIED
-        ? `Save failed: Permission Denied for service account: ${clientEmail}. Please ensure this account has the 'Cloud Datastore User' or 'Editor' role in Google Cloud IAM.`
-        : 'Failed to save content. A server error occurred.'
+       let userFriendlyMessage = 'Failed to save content. A server error occurred.';
+       if (e.code === 7) { // PERMISSION_DENIED
+            userFriendlyMessage = `Save failed: Permission Denied. Since you've already set the roles, this is likely a temporary delay. Please wait a moment and try saving again.`;
+       } else if (e.message?.includes('Cloud Firestore API has not been used')) {
+            userFriendlyMessage = `Save failed: The Firestore database has not been created for this project. Please create it in the Firebase Console before saving content.`;
+       }
 
       return {
         success: false,
