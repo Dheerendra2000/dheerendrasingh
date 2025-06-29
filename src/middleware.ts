@@ -5,31 +5,24 @@ const COOKIE_NAME = 'admin-session'
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const cookie = request.cookies.get(COOKIE_NAME)
+  const hasCookie = request.cookies.has(COOKIE_NAME)
 
-  // Only apply logic to admin routes to avoid running on all requests
-  if (pathname.startsWith('/admin')) {
-    const isProtectedAdminRoute = pathname.startsWith('/admin/dashboard')
-    const isLoginPage = pathname === '/admin/login'
+  // If trying to access login page while already logged in, redirect to dashboard
+  if (hasCookie && pathname === '/admin/login') {
+    return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+  }
 
-    // If user is on a protected route without a cookie, redirect to login
-    if (isProtectedAdminRoute && !cookie) {
-      const loginUrl = new URL('/admin/login', request.url)
-      loginUrl.searchParams.set('from', pathname) // Optional: redirect back after login
-      return NextResponse.redirect(loginUrl)
-    }
-
-    // If user is logged in and tries to access login page, redirect to dashboard
-    if (isLoginPage && cookie) {
-        const dashboardUrl = new URL('/admin/dashboard', request.url)
-        return NextResponse.redirect(dashboardUrl)
-    }
+  // If trying to access a protected admin route without being logged in, redirect to login
+  if (!hasCookie && pathname.startsWith('/admin/dashboard')) {
+    const loginUrl = new URL('/admin/login', request.url)
+    loginUrl.searchParams.set('from', request.nextUrl.pathname)
+    return NextResponse.redirect(loginUrl)
   }
 
   return NextResponse.next()
 }
 
-// We can still use the matcher to avoid invoking the middleware on static assets.
 export const config = {
-  matcher: ['/admin/login', '/admin/dashboard/:path*'],
+  // This matcher ensures the middleware runs on all admin routes
+  matcher: ['/admin/:path*'],
 }
