@@ -2,7 +2,7 @@
 
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
-import { db } from '@/lib/firebase-admin'
+import { db, initError } from '@/lib/firebase-admin'
 
 const aboutContentSchema = z.object({
   heading: z.string().min(1, { message: 'Heading is required.' }),
@@ -15,6 +15,15 @@ const aboutContentSchema = z.object({
 
 // This function is designed to be used in a useActionState hook.
 export async function updateAboutContent(prevState: any, formData: FormData) {
+  if (initError || !db) {
+    return { 
+        success: false,
+        message: 'Failed to save: Database not connected.',
+        errors: null,
+        error: initError || "Database not initialized.",
+    }
+  }
+
   const rawData = {
     heading: formData.get('heading'),
     paragraph1: formData.get('paragraph1'),

@@ -1,9 +1,30 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { getHomeContent } from "@/lib/data/home"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Terminal } from "lucide-react"
 
 export default async function HeroSection() {
   const content = await getHomeContent();
+
+  if (content.error) {
+    return (
+      <section id="home" className="py-12 md:py-20 bg-background">
+        <div className="container mx-auto px-4">
+          <Alert variant="destructive">
+            <Terminal className="h-4 w-4" />
+            <AlertTitle>Action Required: Configuration Error</AlertTitle>
+            <AlertDescription>
+              <p className="font-semibold">The application cannot connect to the database.</p>
+              <code className="mt-2 relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
+                {content.error}
+              </code>
+            </AlertDescription>
+          </Alert>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="home" className="py-12 md:py-20 bg-background">

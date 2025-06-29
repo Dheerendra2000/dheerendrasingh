@@ -1,9 +1,13 @@
-import { db } from '@/lib/firebase-admin';
+import { db, initError } from '@/lib/firebase-admin';
 import { defaultHomeContent, type HomeContent } from '@/lib/contentDefaults';
 
-const contentCollection = db.collection('content');
+const contentCollection = db?.collection('content');
 
-export async function getHomeContent(): Promise<HomeContent> {
+export async function getHomeContent(): Promise<HomeContent & { error?: string }> {
+  if (initError || !contentCollection) {
+    return { ...defaultHomeContent, error: initError };
+  }
+  
   try {
     const doc = await contentCollection.doc('home').get();
 
@@ -16,9 +20,12 @@ export async function getHomeContent(): Promise<HomeContent> {
     
     // The document exists, return its data
     return doc.data() as HomeContent;
-  } catch (error) {
-    console.error("Failed to fetch home content from Firestore, falling back to default content. This is likely a server-side permission or configuration issue. Error:", error);
-    // On any error (e.g., permissions), fall back to default content for graceful failure
-    return defaultHomeContent;
+  } catch (error: any) {
+    console.error("Failed to fetch home content from Firestore, falling back to default content. Error:", error);
+    const errorMessage = error.code === 'permission-denied' 
+      ? "Firestore permission denied. Please check your project's security rules."
+      : "An unknown error occurred while fetching content from Firestore.";
+    // On any error, fall back to default content for graceful failure
+    return {...defaultHomeContent, error: errorMessage };
   }
 }

@@ -1,11 +1,31 @@
 import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/card"
-import { CheckCircle } from "lucide-react"
+import { CheckCircle, Terminal } from "lucide-react"
 import { getAboutContent } from "@/lib/data/about"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 
 export default async function AboutSection() {
   const content = await getAboutContent();
+
+  if (content.error) {
+    return (
+      <section id="about" className="py-20 bg-background">
+        <div className="container mx-auto px-4">
+           <Alert variant="destructive">
+            <Terminal className="h-4 w-4" />
+            <AlertTitle>Action Required: Configuration Error</AlertTitle>
+            <AlertDescription>
+              <p className="font-semibold">The 'About Me' section cannot connect to the database.</p>
+              <code className="mt-2 relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
+                {content.error}
+              </code>
+            </AlertDescription>
+          </Alert>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="about" className="py-20 bg-background">
