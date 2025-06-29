@@ -47,6 +47,10 @@ export default function GalleryClient({ content }: { content: GalleryContent }) 
                      <video
                       poster={item.src}
                       controls
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
                       className="object-cover w-full h-full"
                       preload="metadata"
                       aria-label={item.alt}
