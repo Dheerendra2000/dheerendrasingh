@@ -51,16 +51,56 @@ export async function submitContactForm(data: unknown) {
       to: EMAIL_TO,
       replyTo: email,
       subject: `New Contact Form Submission: ${subject}`,
-      text: `You have received a new message from your website contact form.\n\nHere are the details:\n\nName: ${name}\nEmail: ${email}\nSubject: ${subject}\n\nMessage:\n${message}`,
+      text: `
+New Message from your Website (dheerendrasingh.com)
+---------------------------------------------------
+
+You have received a new inquiry.
+
+SENDER DETAILS:
+- Name: ${name}
+- Email: ${email}
+
+MESSAGE:
+- Subject: ${subject}
+
+${message}
+
+---------------------------------------------------
+This is an automated message from your website's contact form.
+      `,
       html: `
-        <div style="font-family: sans-serif; line-height: 1.6;">
-          <h2>New Message from Website Contact Form</h2>
-          <p>You have received a new message from <strong>${name}</strong> (<a href="mailto:${email}">${email}</a>).</p>
-          <hr>
-          <h3>Message Details</h3>
-          <p><strong>Subject:</strong> ${subject}</p>
-          <p><strong>Message:</strong></p>
-          <p style="padding: 1rem; background-color: #f4f4f4; border-left: 4px solid #ccc;">${message.replace(/\n/g, '<br>')}</p>
+        <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 600px; margin: 20px auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+          <div style="background-color: #23497B; color: #ffffff; padding: 25px 20px; text-align: center;">
+            <h1 style="margin: 0; font-family: 'Playfair Display', serif; font-size: 28px; font-weight: bold;">New Contact Inquiry</h1>
+          </div>
+          <div style="padding: 25px 20px;">
+            <p style="font-size: 16px; margin-bottom: 20px;">Hello Dheerendra, you have received a new message via your portfolio website's contact form:</p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 15px;">
+              <tr style="background-color: #f7f9fc;">
+                <td style="padding: 12px; font-weight: bold; border: 1px solid #e0e0e0; width: 100px;">From:</td>
+                <td style="padding: 12px; border: 1px solid #e0e0e0;">${name}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px; font-weight: bold; border: 1px solid #e0e0e0;">Email:</td>
+                <td style="padding: 12px; border: 1px solid #e0e0e0;"><a href="mailto:${email}" style="color: #23497B; text-decoration: none;">${email}</a></td>
+              </tr>
+              <tr style="background-color: #f7f9fc;">
+                <td style="padding: 12px; font-weight: bold; border: 1px solid #e0e0e0;">Subject:</td>
+                <td style="padding: 12px; border: 1px solid #e0e0e0;">${subject}</td>
+              </tr>
+            </table>
+
+            <h3 style="font-family: 'Playfair Display', serif; color: #23497B; border-bottom: 2px solid #e0e0e0; padding-bottom: 5px; margin-top: 30px; margin-bottom: 15px;">Message:</h3>
+            <div style="font-size: 15px; line-height: 1.7; background-color: #fdfdfd; padding: 15px; border-left: 3px solid #23497B; min-height: 100px;">
+              <p style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">${message.replace(/\n/g, '<br>')}</p>
+            </div>
+          </div>
+          <div style="background-color: #f4f4f4; color: #888; padding: 20px; text-align: center; font-size: 12px;">
+            <p style="margin: 0;">This email was sent automatically from dheerendrasingh.com.</p>
+            <p style="margin: 5px 0 0;">&copy; ${new Date().getFullYear()} Dheerendra Singh</p>
+          </div>
         </div>
       `,
     });
