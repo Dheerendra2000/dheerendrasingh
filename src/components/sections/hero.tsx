@@ -21,7 +21,7 @@ async function getHeroContent(): Promise<HeroContent> {
     return {
       heroTitle: "Dheerendra Singh",
       heroTagline: "Leading Public Speaker & Branding and PR Specialist",
-      videoUrl: "https://dummy-media.torchbox.com/media/hero-1920x1080.mp4",
+      videoUrl: "https://videos.pexels.com/video-files/3209828/3209828-hd_1920_1080_25fps.mp4",
     };
   }
 }
@@ -44,7 +44,7 @@ export default async function HeroSection() {
       </video>
       <div className="absolute inset-0 bg-primary/70 -z-10" />
       <div className="container mx-auto px-4 text-center">
-        <h1 className="text-4xl md:text-6xl font-bold font-headline mb-4 drop-shadow-lg animate-fade-in-down">
+        <h1 className="text-4xl md:text-6xl font-bold font-headline text-accent mb-4 drop-shadow-lg animate-fade-in-down">
           {content.heroTitle}
         </h1>
         <p className="text-xl md:text-2xl mb-8 text-primary-foreground/90 max-w-3xl mx-auto drop-shadow-md animate-fade-in-up">
