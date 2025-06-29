@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast'
 import { updateGalleryContent } from './actions'
 import type { GalleryContent, GalleryItem } from '@/lib/contentDefaults'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Plus, Trash2, GripVertical } from 'lucide-react'
+import { Plus, Trash2, GripVertical, ChevronsUpDown, Check } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import {
@@ -20,6 +20,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import { cn } from '@/lib/utils'
 
 
 function SubmitButton() {
@@ -30,6 +44,77 @@ function SubmitButton() {
     </Button>
   )
 }
+
+function CategoryCombobox({ value, onChange, categories }: { value: string; onChange: (value: string) => void; categories: string[] }) {
+  const [open, setOpen] = useState(false);
+
+  // Find the correctly cased category from the list
+  const displayValue = categories.find(c => c.toLowerCase() === value?.toLowerCase()) || value;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between font-normal"
+        >
+          {displayValue || "Select or create..."}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+        <Command 
+            filter={(value, search) => {
+              if (value.toLowerCase().includes(search.toLowerCase())) return 1
+              return 0
+            }}
+        >
+          <CommandInput
+            placeholder="Search or type new..."
+            value={value}
+            onValueChange={onChange}
+          />
+          <CommandList>
+            <CommandEmpty>
+              <CommandItem
+                onSelect={() => {
+                  onChange(value) // Use the current input value as the new category
+                  setOpen(false)
+                }}
+              >
+                Create "{value}"
+              </CommandItem>
+            </CommandEmpty>
+            <CommandGroup>
+              {categories.map((category) => (
+                <CommandItem
+                  key={category}
+                  value={category}
+                  onSelect={(currentValue) => {
+                    const newValue = currentValue === value?.toLowerCase() ? "" : category;
+                    onChange(newValue);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value?.toLowerCase() === category.toLowerCase() ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {category}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 
 export default function GalleryForm({ content }: { content: GalleryContent }) {
   const [state, formAction] = useActionState(updateGalleryContent, null)
@@ -205,14 +290,12 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
                                   
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                       <div className="space-y-2">
-                                          <Label htmlFor={`category-${item.id}`}>Category</Label>
-                                          <Input 
-                                              id={`category-${item.id}`}
+                                          <Label>Category</Label>
+                                           <CategoryCombobox
                                               value={item.category || ''}
-                                              onChange={(e) => handleInputChange(item.id, 'category', e.target.value)}
-                                              placeholder="e.g., events or type new"
-                                              list="gallery-categories"
-                                          />
+                                              onChange={(newValue) => handleInputChange(item.id, 'category', newValue)}
+                                              categories={existingCategories}
+                                            />
                                       </div>
                                       <div className="space-y-2">
                                           <Label htmlFor={`hint-${item.id}`}>AI Hint (for poster)</Label>
@@ -246,12 +329,6 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
             </Droppable>
           </DragDropContext>
         ) : null}
-
-        <datalist id="gallery-categories">
-            {existingCategories.map((cat) => (
-                <option key={cat} value={cat} />
-            ))}
-        </datalist>
 
         {state?.errors?._form && 
             <Alert variant="destructive" className="mt-4">
