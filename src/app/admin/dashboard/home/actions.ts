@@ -10,6 +10,7 @@ const homeContentSchema = z.object({
   heroTagline: z.string().min(1, { message: 'Hero tagline is required.' }),
   videoUrl: z.string().url({ message: 'Please enter a valid URL for the video.' }),
   heroTitleColor: z.string().regex(/^#([0-9a-fA-F]{3}){1,2}$/i, { message: 'Must be a valid hex color code (e.g., #FFD700).' }),
+  heroTaglineColor: z.string().regex(/^#([0-9a-fA-F]{3}){1,2}$/i, { message: 'Must be a valid hex color code (e.g., #F8FAFC).' }),
 })
 
 // This function is designed to be used in a useActionState hook.
@@ -28,6 +29,7 @@ export async function updateHomeContent(prevState: any, formData: FormData) {
     heroTagline: formData.get('heroTagline'),
     videoUrl: formData.get('videoUrl'),
     heroTitleColor: formData.get('heroTitleColor'),
+    heroTaglineColor: formData.get('heroTaglineColor'),
   }
 
   const result = homeContentSchema.safeParse(data)

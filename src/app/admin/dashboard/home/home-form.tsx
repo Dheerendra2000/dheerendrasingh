@@ -25,6 +25,7 @@ type HomeContent = {
   heroTagline: string;
   videoUrl: string;
   heroTitleColor: string;
+  heroTaglineColor: string;
 }
 
 export default function HomeForm({ content }: { content: HomeContent }) {
@@ -63,6 +64,12 @@ export default function HomeForm({ content }: { content: HomeContent }) {
             <Input id="heroTitleColor" name="heroTitleColor" defaultValue={content.heroTitleColor} />
             {state?.errors?.heroTitleColor && <p className="text-sm font-medium text-destructive">{state.errors.heroTitleColor[0]}</p>}
             <p className="text-xs text-muted-foreground">Enter a hex color code (e.g., #FFD700 for gold).</p>
+        </div>
+        <div className="space-y-2">
+            <Label htmlFor="heroTaglineColor">Hero Tagline Color</Label>
+            <Input id="heroTaglineColor" name="heroTaglineColor" defaultValue={content.heroTaglineColor} />
+            {state?.errors?.heroTaglineColor && <p className="text-sm font-medium text-destructive">{state.errors.heroTaglineColor[0]}</p>}
+            <p className="text-xs text-muted-foreground">Enter a hex color code (e.g., #F8FAFC for light gray).</p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="videoUrl">Background Video URL</Label>

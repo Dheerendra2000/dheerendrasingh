@@ -62,7 +62,10 @@ export default async function HeroSection() {
                 >
                   {content.heroTitle}
                 </h1>
-                <p className="text-xl md:text-2xl mb-8 text-primary-foreground/90 max-w-3xl mx-auto drop-shadow-md">
+                <p 
+                  className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto drop-shadow-md"
+                  style={{ color: content.heroTaglineColor }}
+                >
                   {content.heroTagline}
                 </p>
                 <div className="flex flex-col sm:flex-row justify-center gap-4">

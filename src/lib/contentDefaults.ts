@@ -4,6 +4,7 @@ export type HomeContent = {
   heroTagline: string;
   videoUrl: string;
   heroTitleColor: string;
+  heroTaglineColor: string;
 }
 
 export const defaultHomeContent: HomeContent = {
@@ -11,6 +12,7 @@ export const defaultHomeContent: HomeContent = {
   heroTagline: "Leading Public Speaker & Branding and PR Specialist",
   videoUrl: "https://videos.pexels.com/video-files/3209828/3209828-hd_1920_1080_25fps.mp4",
   heroTitleColor: "#FFD700",
+  heroTaglineColor: "#F8FAFC",
 };
 
 
