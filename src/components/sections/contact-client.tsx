@@ -51,8 +51,8 @@ export default function ContactClient({ content }: { content: ContactInfo }) {
       form.reset()
     } else {
       toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
+        title: "Error Sending Message",
+        description: result.message || "Something went wrong. Please try again.",
         variant: "destructive",
       })
     }

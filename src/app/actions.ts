@@ -46,6 +46,9 @@ export async function submitContactForm(data: unknown) {
   });
 
   try {
+    // Verify connection configuration before sending
+    await transporter.verify();
+    
     await transporter.sendMail({
       from: `"${name}" <${EMAIL_FROM}>`,
       to: EMAIL_TO,
@@ -107,11 +110,11 @@ This is an automated message from your website's contact form.
     return { success: true, message: 'Thank you for your message! We will get back to you soon.' }
   } catch (error) {
     console.error('Failed to send contact form email:', error);
-    // Return a generic error to the user to avoid leaking implementation details
+    // Return a more helpful error to the user to avoid leaking implementation details
     return { 
       success: false, 
       errors: null,
-      message: "Sorry, there was an issue sending your message. Please try again later."
+      message: "Sorry, we couldn't send your message. Please double-check your SMTP settings in the .env file or try again later."
     }
   }
 }
