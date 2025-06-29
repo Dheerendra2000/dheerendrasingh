@@ -43,7 +43,7 @@ export default function AdminDashboard() {
                 <CardContent>
                     <p className="text-xs text-muted-foreground">Manage your home page content.</p>
                      <Button asChild variant="link" className="p-0 h-auto mt-4 text-primary">
-                        <Link href="/admin/dashboard/home">Manage Home</Link>
+                        <a href="/admin/dashboard/home">Manage Home</a>
                      </Button>
                 </CardContent>
             </Card>

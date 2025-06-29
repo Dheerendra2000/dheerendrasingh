@@ -3,8 +3,6 @@ import type { NextRequest } from 'next/server'
 
 const COOKIE_NAME = 'admin-session'
 
-export const runtime = 'nodejs'
-
 export function middleware(request: NextRequest) {
   const cookie = request.cookies.get(COOKIE_NAME)
   const { pathname } = request.nextUrl
