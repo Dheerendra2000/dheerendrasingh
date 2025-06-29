@@ -54,7 +54,9 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                     <p className="text-xs text-muted-foreground">Update your 'About Me' section.</p>
-                     <Button variant="link" className="p-0 h-auto mt-4 text-primary">Manage About</Button>
+                     <Button asChild variant="link" className="p-0 h-auto mt-4 text-primary">
+                       <a href="#">Manage About</a>
+                     </Button>
                 </CardContent>
             </Card>
             <Card>
@@ -64,7 +66,9 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                     <p className="text-xs text-muted-foreground">Update your image gallery.</p>
-                    <Button variant="link" className="p-0 h-auto mt-4 text-primary">Manage Gallery</Button>
+                    <Button asChild variant="link" className="p-0 h-auto mt-4 text-primary">
+                       <a href="#">Manage Gallery</a>
+                    </Button>
                 </CardContent>
             </Card>
             <Card>
@@ -74,7 +78,9 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                     <p className="text-xs text-muted-foreground">Manage your achievements timeline.</p>
-                    <Button variant="link" className="p-0 h-auto mt-4 text-primary">Manage Achievements</Button>
+                    <Button asChild variant="link" className="p-0 h-auto mt-4 text-primary">
+                      <a href="#">Manage Achievements</a>
+                    </Button>
                 </CardContent>
             </Card>
             <Card>
@@ -84,7 +90,9 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                     <p className="text-xs text-muted-foreground">Manage your course listings.</p>
-                     <Button variant="link" className="p-0 h-auto mt-4 text-primary">Manage Courses</Button>
+                     <Button asChild variant="link" className="p-0 h-auto mt-4 text-primary">
+                       <a href="#">Manage Courses</a>
+                     </Button>
                 </CardContent>
             </Card>
              <Card>
@@ -94,7 +102,9 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                     <p className="text-xs text-muted-foreground">Add and edit client testimonials.</p>
-                    <Button variant="link" className="p-0 h-auto mt-4 text-primary">Manage Testimonials</Button>
+                    <Button asChild variant="link" className="p-0 h-auto mt-4 text-primary">
+                       <a href="#">Manage Testimonials</a>
+                    </Button>
                 </CardContent>
             </Card>
         </div>
