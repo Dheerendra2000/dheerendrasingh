@@ -9,7 +9,7 @@ import { db, initError } from '@/lib/firebase-admin'
 const galleryItemSchema = z.object({
   id: z.string(),
   type: z.enum(['image', 'video']),
-  src: z.string().nonempty({ message: 'Image/Poster URL is required.'}).url({ message: 'URL must be valid.' }),
+  src: z.string().min(1, { message: 'Image/Poster URL is required.'}).url({ message: 'URL must be valid.' }),
   alt: z.string().min(1, { message: 'Alt text is required.' }),
   hint: z.string().optional(),
   category: z.string().min(1, { message: 'Category is required.' }),
@@ -105,34 +105,32 @@ export async function updateGalleryContent(prevState: any, formData: FormData) {
       }
     }
   } else {
-    const flattenedErrors = result.error.flatten();
-    console.error('Validation errors:', flattenedErrors);
+    console.error('Validation errors:', result.error.format());
     
-    // Generate a specific and helpful error message.
-    const fieldErrors = flattenedErrors.fieldErrors;
-    const errorKeys = Object.keys(fieldErrors);
-    let specificMessage = '';
+    // Provide a much more specific error message by inspecting the first Zod issue.
+    const firstIssue = result.error.issues[0];
+    let specificMessage = 'An unexpected validation error occurred. Please check all fields.';
 
-    if (errorKeys.length > 0) {
-      const firstErrorKey = errorKeys[0] as keyof typeof fieldErrors;
-      const errorMessage = (fieldErrors[firstErrorKey] as string[] | undefined)?.[0] || 'An error occurred.';
-      const match = firstErrorKey.match(/items\.(\d+)\.(\w+)/);
-      if (match) {
-        const itemIndex = parseInt(match[1], 10) + 1;
-        const fieldName = match[2];
-        specificMessage = `Error on item #${itemIndex} in the '${fieldName}' field: ${errorMessage}`;
-      } else {
-        // Fallback for non-item-specific errors
-        specificMessage = errorMessage;
-      }
+    if (firstIssue) {
+        const path = firstIssue.path; // e.g., ['items', 0, 'src']
+        const defaultMessage = firstIssue.message;
+        
+        if (path.length > 2 && path[0] === 'items') {
+            const itemIndex = Number(path[1]) + 1;
+            const fieldName = String(path[2]);
+            // Capitalize field name for display
+            const prettyFieldName = fieldName.charAt(0).toUpperCase() + fieldName.slice(1).replace(/([A-Z])/g, ' $1');
+            specificMessage = `Error in Item #${itemIndex} (${prettyFieldName}): ${defaultMessage}`;
+        } else {
+            // A more general error not specific to an item field.
+            specificMessage = defaultMessage;
+        }
     }
-
-    const fallbackMessage = 'Validation failed. Check that all URLs are valid and all required fields (like Alt Text and Category) are filled for every item.';
 
     return {
         success: false,
-        message: specificMessage || fallbackMessage,
-        errors: { _form: specificMessage || fallbackMessage },
+        message: specificMessage,
+        errors: { _form: specificMessage },
     }
   }
 }
