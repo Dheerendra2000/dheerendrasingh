@@ -36,15 +36,28 @@ export default function GalleryClient({ content }: { content: GalleryContent }) 
           {filteredItems.map(item => (
             <Card key={item.id} className="overflow-hidden group shadow-lg">
               <CardContent className="p-0">
-                <div className="aspect-w-3 aspect-h-2">
-                  <Image
-                    src={item.src}
-                    alt={item.alt}
-                    data-ai-hint={item.hint}
-                    width={600}
-                    height={400}
-                    className="object-cover w-full h-full transform group-hover:scale-110 transition-transform duration-500"
-                  />
+                <div className="aspect-[3/2] w-full">
+                  {item.type === 'video' && item.videoSrc ? (
+                     <video
+                      poster={item.src}
+                      controls
+                      className="object-cover w-full h-full"
+                      preload="metadata"
+                      aria-label={item.alt}
+                    >
+                      <source src={item.videoSrc} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : (
+                    <Image
+                      src={item.src}
+                      alt={item.alt}
+                      data-ai-hint={item.hint}
+                      width={600}
+                      height={400}
+                      className="object-cover w-full h-full transform group-hover:scale-110 transition-transform duration-500"
+                    />
+                  )}
                 </div>
               </CardContent>
             </Card>

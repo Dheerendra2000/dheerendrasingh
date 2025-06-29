@@ -6,11 +6,22 @@ import { db, initError } from '@/lib/firebase-admin'
 
 const galleryItemSchema = z.object({
   id: z.string(),
-  src: z.string().url({ message: 'Image URL must be a valid URL.' }),
+  type: z.enum(['image', 'video']),
+  src: z.string().url({ message: 'Image/Poster URL must be a valid URL.' }),
   alt: z.string().min(1, { message: 'Alt text is required.' }),
   hint: z.string().optional(),
   category: z.string().min(1, { message: 'Category is required.' }),
+  videoSrc: z.string().url({ message: 'Video URL must be a valid URL.' }).optional().or(z.literal('')),
+}).refine(data => {
+    if (data.type === 'video') {
+        return !!data.videoSrc;
+    }
+    return true;
+}, {
+    message: 'A Video URL is required for items of type "video".',
+    path: ['videoSrc'],
 });
+
 
 const galleryContentSchema = z.object({
   items: z.array(galleryItemSchema),
