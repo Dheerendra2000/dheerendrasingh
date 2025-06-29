@@ -31,8 +31,11 @@ export async function submitContactForm(data: unknown) {
     console.error('SMTP environment variables are not set. Email not sent. Please configure them in your .env file.');
     // As a fallback, we log the message to the console.
     console.log('New contact message (email not sent due to missing config):', result.data);
-    // Still return a success message to the user.
-    return { success: true, message: 'Thank you for your message! We will get back to you soon.' }
+    // Return an error to the user instead of a false success.
+    return { 
+        success: false, 
+        message: 'The server is not configured to send emails. Please contact the administrator.' 
+    }
   }
 
   try {
@@ -114,7 +117,7 @@ This is an automated message from your website's contact form.
     return { 
       success: false, 
       errors: null,
-      message: "Sorry, we couldn't send your message. Please double-check your SMTP settings in the .env file or try again later."
+      message: "Sorry, we couldn't send your message due to a server error. Please try again later."
     }
   }
 }
