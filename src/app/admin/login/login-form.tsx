@@ -1,7 +1,7 @@
+
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from '@/lib/firebase';
 import { setAuthCookie } from '@/lib/auth';
@@ -13,7 +13,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast'
 
 export default function LoginForm() {
-  const router = useRouter()
   const { toast } = useToast()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -35,9 +34,9 @@ export default function LoginForm() {
         description: 'Redirecting to dashboard...',
       })
 
-      // 3. Redirect to the dashboard and refresh server components.
-      router.push('/admin/dashboard')
-      router.refresh() 
+      // 3. Force a full page reload to the dashboard.
+      // This ensures the new session cookie is sent to the server, fixing the redirect loop.
+      window.location.href = '/admin/dashboard';
 
     } catch (error: any) {
       const errorCode = error.code;
@@ -55,8 +54,7 @@ export default function LoginForm() {
         description: errorMessage,
         variant: 'destructive',
       })
-    } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
