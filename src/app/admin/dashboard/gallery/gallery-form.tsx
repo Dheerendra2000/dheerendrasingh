@@ -37,6 +37,8 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
   const [items, setItems] = useState<GalleryItem[]>(content.items)
   const [isBrowser, setIsBrowser] = useState(false);
 
+  const existingCategories = [...new Set(items.map((item) => item.category?.trim()).filter(Boolean))].sort();
+
   useEffect(() => {
     setIsBrowser(true);
   }, []);
@@ -64,6 +66,7 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
         
         const updatedItem = { ...item, [field]: value };
 
+        // When type is switched to 'image', clear the videoSrc to prevent validation issues.
         if (field === 'type' && value === 'image') {
           updatedItem.videoSrc = '';
         }
@@ -207,7 +210,8 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
                                               id={`category-${item.id}`}
                                               value={item.category || ''}
                                               onChange={(e) => handleInputChange(item.id, 'category', e.target.value)}
-                                              placeholder="e.g., events"
+                                              placeholder="e.g., events or type new"
+                                              list="gallery-categories"
                                           />
                                       </div>
                                       <div className="space-y-2">
@@ -242,6 +246,12 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
             </Droppable>
           </DragDropContext>
         ) : null}
+
+        <datalist id="gallery-categories">
+            {existingCategories.map((cat) => (
+                <option key={cat} value={cat} />
+            ))}
+        </datalist>
 
         {state?.errors?._form && 
             <Alert variant="destructive" className="mt-4">
