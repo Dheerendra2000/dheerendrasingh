@@ -4,28 +4,34 @@ import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { db, initError } from '@/lib/firebase-admin'
 
-const galleryItemSchema = z.object({
+// Define separate schemas for each type of gallery item.
+const imageItemSchema = z.object({
   id: z.string(),
-  type: z.enum(['image', 'video']),
-  src: z.string().nonempty({ message: 'Image/Poster URL is required.'}).url({ message: 'Image/Poster URL must be a valid URL.' }),
+  type: z.literal('image'),
+  src: z.string().nonempty({ message: 'Image URL is required.'}).url({ message: 'Image URL must be a valid URL.' }),
   alt: z.string().min(1, { message: 'Alt text is required.' }),
   hint: z.string().optional(),
   category: z.string().min(1, { message: 'Category is required.' }),
-  videoSrc: z.string().optional(),
+  videoSrc: z.string().optional().nullish(), // For images, we don't validate videoSrc
   size: z.enum(['regular', 'large']).optional(),
-}).superRefine((data, ctx) => {
-  if (data.type === 'video') {
-    const parseResult = z.string().url().safeParse(data.videoSrc);
-    if (!parseResult.success) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.invalid_string,
-        validation: 'url',
-        message: 'A valid Video URL is required for video items.',
-        path: ['videoSrc'],
-      });
-    }
-  }
 });
+
+const videoItemSchema = z.object({
+  id: z.string(),
+  type: z.literal('video'),
+  src: z.string().nonempty({ message: 'Poster URL is required.'}).url({ message: 'Poster URL must be a valid URL.' }),
+  alt: z.string().min(1, { message: 'Alt text is required.' }),
+  hint: z.string().optional(),
+  category: z.string().min(1, { message: 'Category is required.' }),
+  videoSrc: z.string({ required_error: 'Video URL is required for video items.'}).nonempty({ message: 'Video URL is required for video items.'}).url({ message: 'Video URL must be a valid URL.'}),
+  size: z.enum(['regular', 'large']).optional(),
+});
+
+// Create a discriminated union based on the 'type' field.
+const galleryItemSchema = z.discriminatedUnion("type", [
+  imageItemSchema,
+  videoItemSchema,
+]);
 
 
 const galleryContentSchema = z.object({
@@ -96,13 +102,29 @@ export async function updateGalleryContent(prevState: any, formData: FormData) {
     }
   } else {
     console.error('Validation errors:', result.error.flatten());
-    const formErrors = result.error.flatten().formErrors.join(', ');
+    // Try to find a specific error message
+    const fieldErrors = result.error.flatten().fieldErrors;
+    const errorKeys = Object.keys(fieldErrors);
+    let specificMessage = '';
+    if (errorKeys.length > 0) {
+      const firstErrorKey = errorKeys[0] as keyof typeof fieldErrors;
+      const errorMessage = fieldErrors[firstErrorKey]?.[0] || 'An error occurred.';
+      const match = firstErrorKey.match(/items\.(\d+)\.(\w+)/);
+      if (match) {
+        const itemIndex = parseInt(match[1], 10) + 1;
+        const fieldName = match[2];
+        specificMessage = `Error on item #${itemIndex} in the '${fieldName}' field: ${errorMessage}`;
+      } else {
+        specificMessage = errorMessage;
+      }
+    }
+
     const fallbackMessage = 'Validation failed. Check that all URLs are valid and all required fields (like Alt Text and Category) are filled for every item.';
 
     return {
         success: false,
-        message: `Please correct the errors and try again. ${formErrors}`,
-        errors: { _form: formErrors || fallbackMessage },
+        message: specificMessage || fallbackMessage,
+        errors: { _form: specificMessage || fallbackMessage },
     }
   }
 }
