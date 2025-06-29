@@ -2,7 +2,7 @@
 
 import { signOut } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
-import { logout as serverLogout } from '../actions'
+import { revokeSessionCookie } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 
@@ -14,8 +14,11 @@ export default function LogoutButton() {
       // Sign out from Firebase on the client
       await signOut(auth)
 
-      // Call the server action to clear the cookie and trigger the redirect
-      await serverLogout()
+      // Call the server action to revoke the session and clear the cookie
+      await revokeSessionCookie()
+      
+      // Force a full page reload to the login page
+      window.location.href = '/admin/login'
       
     } catch (error) {
       console.error('Error signing out: ', error)

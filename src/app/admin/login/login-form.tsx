@@ -1,10 +1,10 @@
-
 'use client'
 
 import { useState } from 'react'
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from '@/lib/firebase';
-import { setAuthCookie } from '@/lib/auth';
+import { useSearchParams } from 'next/navigation'
+import { signInWithEmailAndPassword } from 'firebase/auth'
+import { auth } from '@/lib/firebase'
+import { createSessionCookie } from '@/lib/auth'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast'
 
 export default function LoginForm() {
   const { toast } = useToast()
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -24,31 +25,36 @@ export default function LoginForm() {
 
     try {
       // 1. Sign in with Firebase on the client.
-      await signInWithEmailAndPassword(auth, email, password)
+      const userCredential = await signInWithEmailAndPassword(auth, email, password)
       
-      // 2. Set the server-side session cookie for route protection.
-      await setAuthCookie();
+      // 2. Get the ID token from the signed-in user.
+      const idToken = await userCredential.user.getIdToken()
 
-      toast({
-        title: 'Login Successful',
-        description: 'Redirecting to dashboard...',
-      })
+      // 3. Send the ID token to the server to create a session cookie.
+      const result = await createSessionCookie(idToken)
 
-      // 3. Force a full page reload to the dashboard.
-      // This ensures the new session cookie is sent to the server, fixing the redirect loop.
-      window.location.href = '/admin/dashboard';
+      if (result.success) {
+        toast({
+          title: 'Login Successful',
+          description: 'Redirecting to dashboard...',
+        })
+        
+        // 4. Redirect to the original destination or the dashboard.
+        const from = searchParams.get('from') || '/admin/dashboard'
+        window.location.href = from;
+      } else {
+        throw new Error(result.message || 'Could not create session.')
+      }
 
     } catch (error: any) {
       const errorCode = error.code;
-      let errorMessage = 'An unknown error occurred. Please try again.';
+      let errorMessage = error.message || 'An unknown error occurred. Please try again.';
       if (errorCode === 'auth/invalid-credential' || errorCode === 'auth/invalid-email' || errorCode === 'auth/wrong-password') {
         errorMessage = 'Invalid email or password. Please try again.';
       } else if (errorCode === 'auth/user-not-found') {
           errorMessage = 'No user found with this email.';
-      } else if (errorCode === 'auth/invalid-api-key') {
-          errorMessage = 'Firebase API Key is invalid. Please check your .env.local file.';
       }
-      console.error("Firebase Auth Error:", error)
+      console.error("Authentication Error:", error)
       toast({
         title: 'Login Failed',
         description: errorMessage,

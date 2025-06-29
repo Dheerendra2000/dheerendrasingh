@@ -1,35 +1,72 @@
 'use server'
 
 import { cookies } from 'next/headers'
+import { adminAuth } from './firebase-admin'
+import type { DecodedIdToken } from 'firebase-admin/auth'
 
 const COOKIE_NAME = 'admin-session'
 
 /**
- * Checks if the user is authenticated by verifying the session cookie.
- * This function must be called from a Server Component or a Server Action.
- * @returns {Promise<boolean>} A promise that resolves to true if authenticated, false otherwise.
+ * Creates a session cookie after verifying the provided ID token.
+ * @param idToken The Firebase ID token from the client.
+ * @returns {Promise<{success: boolean, message?: string}>}
  */
-export async function checkAuth(): Promise<boolean> {
-  return cookies().has(COOKIE_NAME)
+export async function createSessionCookie(idToken: string): Promise<{ success: boolean; message?: string }> {
+  try {
+    // Set session expiration to 5 days.
+    const expiresIn = 60 * 60 * 24 * 5 * 1000
+    // Create the session cookie. This will also verify the ID token.
+    const sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn })
+
+    cookies().set(COOKIE_NAME, sessionCookie, {
+      maxAge: expiresIn,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+    })
+
+    return { success: true }
+  } catch (error: any) {
+    console.error('Error creating session cookie:', error)
+    return { success: false, message: error.message }
+  }
 }
 
 /**
- * Sets the session cookie to log the user in.
- * This function must be called from a Server Action.
+ * Verifies the session cookie from the request.
+ * @returns {Promise<DecodedIdToken | null>} The decoded token if the cookie is valid, otherwise null.
  */
-export async function setAuthCookie(): Promise<void> {
-  cookies().set(COOKIE_NAME, 'true', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 60 * 60 * 24 * 7, // One week
-    path: '/',
-  })
+export async function verifySessionCookie(): Promise<DecodedIdToken | null> {
+  const sessionCookie = cookies().get(COOKIE_NAME)?.value
+  if (!sessionCookie) {
+    return null
+  }
+
+  try {
+    // Set checkRevoked to true to ensure the user's session is still valid.
+    const decodedToken = await adminAuth.verifySessionCookie(sessionCookie, true)
+    return decodedToken
+  } catch (error) {
+    // Session cookie is invalid or revoked.
+    // Clear the invalid cookie.
+    cookies().delete(COOKIE_NAME)
+    return null
+  }
 }
 
 /**
- * Deletes the session cookie to log the user out.
- * This function must be called from a Server Action.
+ * Revokes the user's refresh tokens and deletes the session cookie.
  */
-export async function deleteAuthCookie(): Promise<void> {
+export async function revokeSessionCookie(): Promise<void> {
+  const sessionCookie = cookies().get(COOKIE_NAME)?.value
   cookies().delete(COOKIE_NAME)
+
+  if (sessionCookie) {
+    try {
+      const decodedToken = await adminAuth.verifySessionCookie(sessionCookie)
+      await adminAuth.revokeRefreshTokens(decodedToken.sub)
+    } catch (error) {
+      // Ignore errors if the cookie is already invalid.
+    }
+  }
 }
