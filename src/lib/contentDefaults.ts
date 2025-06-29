@@ -114,3 +114,45 @@ export const defaultGalleryContent: GalleryContent = {
     { id: "8", type: "image", category: "behind-the-scenes", src: "https://placehold.co/600x400.png", alt: "Meeting with a client", hint: "client meeting", size: "regular" },
   ]
 };
+
+export type Testimonial = {
+  id: string;
+  name: string;
+  title: string;
+  image: string;
+  hint: string;
+  quote: string;
+};
+
+export type TestimonialsContent = {
+  testimonials: Testimonial[];
+};
+
+export const defaultTestimonialsContent: TestimonialsContent = {
+  testimonials: [
+    {
+      id: "1",
+      name: "John Doe",
+      title: "CEO, TechCorp",
+      image: "https://placehold.co/100x100.png",
+      hint: "man portrait",
+      quote: "Dheerendra's branding strategies revolutionized our market approach. His insights are invaluable, and his delivery is captivating.",
+    },
+    {
+      id: "2",
+      name: "Jane Smith",
+      title: "Marketing Director, Innovate Ltd.",
+      image: "https://placehold.co/100x100.png",
+      hint: "woman portrait",
+      quote: "Working with Dheerendra was a game-changer. His public speaking course gave our team the confidence to shine.",
+    },
+    {
+      id: "3",
+      name: "Samuel Green",
+      title: "Startup Founder",
+      image: "https://placehold.co/100x100.png",
+      hint: "person portrait",
+      quote: "As a founder, getting the brand story right is crucial. Dheerendra helped me craft a narrative that resonates with investors and customers.",
+    },
+  ]
+};

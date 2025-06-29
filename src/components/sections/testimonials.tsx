@@ -7,33 +7,32 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Quote } from "lucide-react"
+import { Quote, Terminal } from "lucide-react"
+import { getTestimonialsContent } from "@/lib/data/testimonials"
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
 
-const testimonials = [
-  {
-    name: "John Doe",
-    title: "CEO, TechCorp",
-    image: "https://placehold.co/100x100.png",
-    hint: "man portrait",
-    quote: "Dheerendra's branding strategies revolutionized our market approach. His insights are invaluable, and his delivery is captivating.",
-  },
-  {
-    name: "Jane Smith",
-    title: "Marketing Director, Innovate Ltd.",
-    image: "https://placehold.co/100x100.png",
-    hint: "woman portrait",
-    quote: "Working with Dheerendra was a game-changer. His public speaking course gave our team the confidence to shine.",
-  },
-  {
-    name: "Samuel Green",
-    title: "Startup Founder",
-    image: "https://placehold.co/100x100.png",
-    hint: "person portrait",
-    quote: "As a founder, getting the brand story right is crucial. Dheerendra helped me craft a narrative that resonates with investors and customers.",
-  },
-]
+export default async function TestimonialsSection() {
+  const { testimonials, error } = await getTestimonialsContent();
 
-export default function TestimonialsSection() {
+  if (error) {
+    return (
+      <section id="testimonials" className="py-20 bg-secondary">
+        <div className="container mx-auto px-4">
+           <Alert variant="destructive">
+            <Terminal className="h-4 w-4" />
+            <AlertTitle>Action Required: Configuration Error</AlertTitle>
+            <AlertDescription>
+              <p className="font-semibold">The 'Testimonials' section cannot connect to the database.</p>
+              <code className="mt-2 relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
+                {error}
+              </code>
+            </AlertDescription>
+          </Alert>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section id="testimonials" className="py-20 bg-secondary">
       <div className="container mx-auto px-4">
@@ -49,8 +48,8 @@ export default function TestimonialsSection() {
           className="w-full max-w-4xl mx-auto"
         >
           <CarouselContent>
-            {testimonials.map((testimonial, index) => (
-              <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/1">
+            {testimonials.map((testimonial) => (
+              <CarouselItem key={testimonial.id} className="md:basis-1/2 lg:basis-1/1">
                 <div className="p-1">
                   <Card className="shadow-lg">
                     <CardContent className="flex flex-col items-center justify-center p-8 text-center">
