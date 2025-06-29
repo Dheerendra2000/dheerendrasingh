@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { logout } from '../actions'
@@ -26,9 +27,9 @@ export default function AdminDashboard() {
           <CardContent>
             <p>You can now start building out management features for your portfolio.</p>
             <div className="mt-6">
-              <Button asChild>
-                <Link href="/">View Live Site</Link>
-              </Button>
+                <Button asChild>
+                    <a href="/">View Live Site</a>
+                </Button>
             </div>
           </CardContent>
         </Card>

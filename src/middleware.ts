@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
@@ -7,11 +8,6 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const hasCookie = request.cookies.has(COOKIE_NAME)
 
-  // If trying to access login page while already logged in, redirect to dashboard
-  if (hasCookie && pathname === '/admin/login') {
-    return NextResponse.redirect(new URL('/admin/dashboard', request.url))
-  }
-
   // If trying to access a protected admin route without being logged in, redirect to login
   if (!hasCookie && pathname.startsWith('/admin/dashboard')) {
     const loginUrl = new URL('/admin/login', request.url)
@@ -19,10 +15,15 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
+  // If trying to access login page while already logged in, redirect to dashboard
+  if (hasCookie && pathname === '/admin/login') {
+    return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+  }
+
   return NextResponse.next()
 }
 
 export const config = {
-  // This matcher ensures the middleware runs on all admin routes
-  matcher: ['/admin/:path*'],
+  // This matcher ensures the middleware runs only on admin and login routes
+  matcher: ['/admin/dashboard/:path*', '/admin/login'],
 }
