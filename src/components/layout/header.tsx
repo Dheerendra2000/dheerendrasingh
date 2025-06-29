@@ -6,6 +6,7 @@ import { Menu, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { ThemeToggle } from "./theme-toggle"
 
 const navLinks = [
   { name: "Home", href: "#home" },
@@ -46,22 +47,30 @@ export default function Header() {
             </span>
           </Link>
 
-          <nav className="hidden md:flex items-center space-x-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-foreground/80 hover:text-primary transition-colors font-medium"
-              >
-                {link.name}
-              </Link>
-            ))}
-            <Button asChild>
-              <Link href="#contact">Contact</Link>
-            </Button>
-          </nav>
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-2">
+            <nav className="flex items-center gap-6">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-foreground/80 hover:text-primary transition-colors font-medium"
+                >
+                  {link.name}
+                </Link>
+              ))}
+            </nav>
+            <div className="flex items-center gap-2 ml-6">
+                <Button asChild>
+                <Link href="#contact">Contact</Link>
+                </Button>
+                <ThemeToggle />
+            </div>
+          </div>
 
-          <div className="md:hidden">
+          {/* Mobile Navigation */}
+          <div className="md:hidden flex items-center gap-2">
+            <ThemeToggle />
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
