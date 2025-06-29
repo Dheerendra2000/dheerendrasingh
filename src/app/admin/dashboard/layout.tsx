@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
+export const dynamic = 'force-dynamic';
+
 const COOKIE_NAME = 'admin-session';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
