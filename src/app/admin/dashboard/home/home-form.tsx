@@ -29,14 +29,14 @@ type HomeContent = {
 }
 
 const colorPalette = [
-  '#FFD700', // Gold (Accent)
-  '#224270', // Deep Blue (Primary)
-  '#F0F4F8', // Light Gray (Background)
+  '#23497B', // Primary
+  '#172F51', // Dark Shade
+  '#5B78A2', // Medium Tint
+  '#94A7C4', // Light Tint
+  '#CED7E5', // Lighter Tint
+  '#F0F4F8', // Off-White
   '#FFFFFF', // White
   '#000000', // Black
-  '#DC2626', // Red
-  '#2563EB', // Blue
-  '#16A34A', // Green
 ];
 
 
