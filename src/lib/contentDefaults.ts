@@ -206,3 +206,19 @@ export const defaultCoursesContent: CoursesContent = {
     },
   ]
 };
+
+export type ContactInfo = {
+  email: string;
+  phone: string;
+  address: string;
+  title: string;
+  description: string;
+};
+
+export const defaultContactInfo: ContactInfo = {
+  email: "contact@dheerendrasingh.com",
+  phone: "+1 (234) 567-890",
+  address: "New Delhi, India",
+  title: "Contact Information",
+  description: "For speaking engagements, media inquiries, or course information, please feel free to reach out.",
+};

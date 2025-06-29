@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText, MessageSquare, Images, Home, User, Award } from 'lucide-react'
+import { FileText, MessageSquare, Images, Home, User, Award, Phone } from 'lucide-react'
 import LogoutButton from './logout-button'
 
 export default function AdminDashboard() {
@@ -103,6 +103,18 @@ export default function AdminDashboard() {
                     <p className="text-xs text-muted-foreground">Add and edit client testimonials.</p>
                     <Button asChild variant="link" className="p-0 h-auto mt-4 text-primary">
                        <a href="/admin/dashboard/testimonials">Manage Testimonials</a>
+                    </Button>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Contact Info</CardTitle>
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <p className="text-xs text-muted-foreground">Update public contact details.</p>
+                    <Button asChild variant="link" className="p-0 h-auto mt-4 text-primary">
+                       <a href="/admin/dashboard/contact">Manage Contact</a>
                     </Button>
                 </CardContent>
             </Card>
