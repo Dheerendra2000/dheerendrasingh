@@ -140,7 +140,7 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
                     <Input
                       id={`videoSrc-${item.id}`}
                       type="url"
-                      value={item.videoSrc}
+                      value={item.videoSrc || ''}
                       onChange={(e) => handleInputChange(item.id, 'videoSrc', e.target.value)}
                       placeholder="e.g., https://videos.pexels.com/video.mp4"
                     />
