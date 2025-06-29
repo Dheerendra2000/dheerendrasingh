@@ -105,7 +105,7 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
         
         {isBrowser ? (
           <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="galleryItems" isDropDisabled={false}>
+            <Droppable droppableId="galleryItems" isDropDisabled={false} isCombineEnabled={false}>
               {(provided) => (
                 <div 
                   className="space-y-6"
