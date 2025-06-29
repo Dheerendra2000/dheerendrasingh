@@ -33,3 +33,48 @@ export const defaultAboutContent: AboutContent = {
     "Helped 100+ clients build their brand presence",
   ]
 };
+
+export type Achievement = {
+  id: string;
+  icon: string;
+  year: string;
+  title: string;
+  description: string;
+}
+
+export type AchievementsContent = {
+  achievements: Achievement[];
+}
+
+export const defaultAchievementsContent: AchievementsContent = {
+  achievements: [
+     {
+      id: "1",
+      icon: "Award",
+      year: "2023",
+      title: "Speaker of the Year Award",
+      description: "Recognized for outstanding and impactful keynote speeches at the National Speakers Conference.",
+    },
+    {
+      id: "2",
+      icon: "Megaphone",
+      year: "2022",
+      title: "Lead 'BrandU' Campaign",
+      description: "Led a successful nationwide PR campaign that increased client visibility by 300%.",
+    },
+    {
+      id: "3",
+      icon: "Newspaper",
+      year: "2021",
+      title: "Forbes Magazine Feature",
+      description: "Featured in an article on 'Top 10 Branding Gurus to Watch'.",
+    },
+    {
+      id: "4",
+      icon: "Award",
+      year: "2020",
+      title: "Excellence in Communication Award",
+      description: "Awarded by the Public Relations Society for innovative communication strategies.",
+    },
+  ]
+};

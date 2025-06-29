@@ -1,9 +1,14 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Terminal } from 'lucide-react'
+import { getAchievementsContent } from '@/lib/data/achievements'
+import AchievementsForm from './achievements-form'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 export default async function ManageAchievementsPage() {
+  const content = await getAchievementsContent();
+
   return (
     <div className="flex min-h-screen flex-col bg-secondary">
        <header className="bg-background border-b shadow-sm">
@@ -21,13 +26,23 @@ export default async function ManageAchievementsPage() {
         </div>
       </header>
       <main className="flex-grow container mx-auto p-4 md:p-8">
-        <Card className="max-w-2xl mx-auto">
+        <Card className="max-w-4xl mx-auto">
             <CardHeader>
                 <CardTitle>Achievements Timeline</CardTitle>
-                <CardDescription>Update the items in your achievements timeline.</CardDescription>
+                <CardDescription>Add, edit, or remove items from your achievements timeline.</CardDescription>
             </CardHeader>
             <CardContent>
-                <p>Management form for the achievements timeline will be implemented here soon.</p>
+                {content.error ? (
+                  <Alert variant="destructive">
+                    <Terminal className="h-4 w-4" />
+                    <AlertTitle>Could not load achievements data</AlertTitle>
+                    <AlertDescription>
+                      <p>{content.error}</p>
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <AchievementsForm content={content} />
+                )}
             </CardContent>
         </Card>
       </main>
