@@ -22,7 +22,7 @@ export default function AdminDashboard() {
           <CardHeader>
             <CardTitle>Welcome, Admin!</CardTitle>
             <CardDescription>This is your control center. Manage your website's content from here.</CardDescription>
-          </Header>
+          </CardHeader>
           <CardContent>
             <p>You can now start building out management features for your portfolio.</p>
             <div className="mt-6">
