@@ -1,18 +1,7 @@
 import type { ReactNode } from 'react';
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 
-export const dynamic = 'force-dynamic';
-
-const COOKIE_NAME = 'admin-session';
-
+// The middleware now handles authentication checks for all dashboard routes.
+// This layout is now only responsible for providing a consistent structure.
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-  const cookieStore = cookies();
-  const hasCookie = cookieStore.has(COOKIE_NAME);
-
-  if (!hasCookie) {
-    redirect('/admin/login');
-  }
-
   return <>{children}</>;
 }
