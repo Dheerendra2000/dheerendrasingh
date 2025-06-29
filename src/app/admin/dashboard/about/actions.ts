@@ -54,9 +54,13 @@ export async function updateAboutContent(prevState: any, formData: FormData) {
       }
     } catch (e: any) {
       console.error('Failed to write about content to Firestore:', e)
+       const userFriendlyMessage = e.code === 7 // PERMISSION_DENIED
+        ? "Save failed: Permission Denied. Please ensure your service account has the 'Cloud Datastore User' or 'Editor' role in Google Cloud IAM."
+        : 'Failed to save content. A server error occurred.'
+
       return {
         success: false,
-        message: 'Failed to save content. A server error occurred.',
+        message: userFriendlyMessage,
         errors: null,
         error: e.message || "Firestore error."
       }
