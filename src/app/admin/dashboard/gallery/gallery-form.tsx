@@ -33,6 +33,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from "@/components/ui/command"
 import { cn } from '@/lib/utils'
 
@@ -51,15 +52,19 @@ function CategoryCombobox({ value, onChange, categories }: { value: string; onCh
   const [searchText, setSearchText] = useState("");
 
   const displayValue = categories.find(c => c.toLowerCase() === value?.toLowerCase()) || value;
-  
+
   const showCreateOption = useMemo(() => {
-    if (!searchText) return false;
-    return !categories.some(c => c.toLowerCase() === searchText.toLowerCase());
+    const trimmedSearch = searchText.trim().toLowerCase();
+    if (!trimmedSearch) return false;
+    // Show create option if the typed text doesn't exactly match an existing category
+    return !categories.some(c => c.toLowerCase() === trimmedSearch);
   }, [categories, searchText]);
+
 
   return (
     <Popover open={open} onOpenChange={(isOpen) => {
       setOpen(isOpen);
+      // Reset search text when closing the popover
       if (!isOpen) {
         setSearchText("");
       }
@@ -77,29 +82,21 @@ function CategoryCombobox({ value, onChange, categories }: { value: string; onCh
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
         <Command
-            value={searchText}
-            onValueChange={setSearchText}
+            // Use a custom filter to handle case-insensitivity
+            filter={(value, search) => {
+              if (value.toLowerCase().includes(search.toLowerCase())) return 1;
+              return 0;
+            }}
         >
           <CommandInput
+            value={searchText}
+            onValueChange={setSearchText}
             placeholder="Search or type new..."
           />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
+            
             <CommandGroup>
-              {showCreateOption && (
-                  <CommandItem
-                    key={searchText}
-                    value={searchText}
-                    onSelect={() => {
-                      onChange(searchText);
-                      setSearchText("");
-                      setOpen(false);
-                    }}
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create "{searchText}"
-                  </CommandItem>
-              )}
               {categories.map((category) => (
                 <CommandItem
                   key={category}
@@ -120,6 +117,26 @@ function CategoryCombobox({ value, onChange, categories }: { value: string; onCh
                 </CommandItem>
               ))}
             </CommandGroup>
+
+            {showCreateOption && <CommandSeparator />}
+            
+            {showCreateOption && (
+                <CommandGroup>
+                    <CommandItem
+                        value={searchText}
+                        onSelect={() => {
+                          onChange(searchText.trim());
+                          setSearchText("");
+                          setOpen(false);
+                        }}
+                        className="cursor-pointer"
+                    >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create "{searchText}"
+                    </CommandItem>
+                </CommandGroup>
+            )}
+
           </CommandList>
         </Command>
       </PopoverContent>
