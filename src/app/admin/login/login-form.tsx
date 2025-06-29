@@ -11,6 +11,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Terminal } from 'lucide-react';
 
 export default function LoginForm() {
   const router = useRouter()
@@ -18,6 +20,32 @@ export default function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  // Firebase will not be initialized if the API key is missing.
+  // We check for the existence of the `auth` object to determine if we can proceed.
+  if (!auth) {
+    return (
+      <Card className="w-full max-w-md mx-4">
+        <CardHeader>
+          <CardTitle>Configuration Required</CardTitle>
+          <CardDescription>
+            The application is not connected to Firebase.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Alert variant="destructive">
+            <Terminal className="h-4 w-4" />
+            <AlertTitle>Action Required</AlertTitle>
+            <AlertDescription>
+              Your Firebase credentials are missing or incomplete. Please create
+              a <strong>.env.local</strong> file in your project root and add your
+              Firebase project configuration. See the browser's developer console for more details.
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    )
+  }
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -46,6 +74,8 @@ export default function LoginForm() {
         errorMessage = 'Invalid email or password. Please try again.';
       } else if (errorCode === 'auth/user-not-found') {
           errorMessage = 'No user found with this email.';
+      } else if (errorCode === 'auth/invalid-api-key') {
+          errorMessage = 'Firebase API Key is invalid. Please check your .env.local file.';
       }
       console.error("Firebase Auth Error:", error)
       toast({
