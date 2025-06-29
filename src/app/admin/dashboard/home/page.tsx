@@ -1,43 +1,47 @@
-'use client'
-
-import { useActionState, useEffect } from 'react'
-import { useFormStatus } from 'react-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { updateHomeContent } from './actions'
+import fs from 'fs/promises'
+import path from 'path'
+import HomeForm from './home-form'
 
-function SubmitButton() {
-  const { pending } = useFormStatus()
-  return (
-    <Button type="submit" disabled={pending} className="w-full">
-      {pending ? 'Saving...' : 'Save Changes'}
-    </Button>
-  )
+type HomeContent = {
+  heroTitle: string;
+  heroTagline: string;
+  videoUrl: string;
 }
 
-export default function ManageHomePage() {
-  const [state, formAction] = useActionState(updateHomeContent, null)
-  const { toast } = useToast()
-
-  useEffect(() => {
-    if (state?.success) {
-      toast({
-        title: 'Success!',
-        description: state.message,
-      })
-    } else if (state?.error && state.errors) {
-       toast({
-        title: 'Error updating content',
-        description: state.message,
-        variant: 'destructive',
-      })
+async function getHomeContent(): Promise<HomeContent> {
+  const contentFilePath = path.join(process.cwd(), 'src', 'lib', 'content', 'home.json');
+  try {
+    const data = await fs.readFile(contentFilePath, 'utf-8');
+    return JSON.parse(data);
+  } catch (error) {
+    // If file doesn't exist, create it with default content
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      const defaultContent: HomeContent = {
+        heroTitle: "Dheerendra Singh",
+        heroTagline: "Leading Public Speaker & Branding and PR Specialist",
+        videoUrl: "https://dummy-media.torchbox.com/media/hero-1920x1080.mp4",
+      };
+      await fs.mkdir(path.dirname(contentFilePath), { recursive: true });
+      await fs.writeFile(contentFilePath, JSON.stringify(defaultContent, null, 2));
+      return defaultContent;
     }
-  }, [state, toast])
+    console.error("Failed to read home content, using default values:", error);
+    // Fallback for other errors
+    return {
+      heroTitle: "Dheerendra Singh",
+      heroTagline: "Leading Public Speaker & Branding and PR Specialist",
+      videoUrl: "https://dummy-media.torchbox.com/media/hero-1920x1080.mp4",
+    };
+  }
+}
+
+
+export default async function ManageHomePage() {
+  const content = await getHomeContent();
 
   return (
     <div className="flex min-h-screen flex-col bg-secondary">
@@ -62,24 +66,7 @@ export default function ManageHomePage() {
                 <CardDescription>Update the title, tagline, and background video of your hero section.</CardDescription>
             </CardHeader>
             <CardContent>
-                <form action={formAction} className="space-y-6">
-                    <div className="space-y-2">
-                        <Label htmlFor="heroTitle">Hero Title</Label>
-                        <Input id="heroTitle" name="heroTitle" defaultValue="Dheerendra Singh" />
-                        {state?.errors?.heroTitle && <p className="text-sm font-medium text-destructive">{state.errors.heroTitle[0]}</p>}
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="heroTagline">Hero Tagline</Label>
-                        <Input id="heroTagline" name="heroTagline" defaultValue="Leading Public Speaker & Branding and PR Specialist" />
-                        {state?.errors?.heroTagline && <p className="text-sm font-medium text-destructive">{state.errors.heroTagline[0]}</p>}
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="videoUrl">Background Video URL</Label>
-                        <Input id="videoUrl" name="videoUrl" type="url" defaultValue="https://dummy-media.torchbox.com/media/hero-1920x1080.mp4" />
-                        {state?.errors?.videoUrl && <p className="text-sm font-medium text-destructive">{state.errors.videoUrl[0]}</p>}
-                    </div>
-                    <SubmitButton />
-                </form>
+                <HomeForm content={content} />
             </CardContent>
         </Card>
       </main>
