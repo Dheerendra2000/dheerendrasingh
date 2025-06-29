@@ -53,7 +53,18 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
 
   const handleInputChange = (id: string, field: keyof Omit<GalleryItem, 'id'>, value: string) => {
     setItems(prev => 
-      prev.map(item => item.id === id ? { ...item, [field]: value } : item)
+      prev.map(item => {
+        if (item.id !== id) return item;
+        
+        const updatedItem = { ...item, [field]: value };
+
+        // If we are changing the type to 'image', clear the videoSrc.
+        if (field === 'type' && value === 'image') {
+          updatedItem.videoSrc = '';
+        }
+        
+        return updatedItem;
+      })
     )
   }
 

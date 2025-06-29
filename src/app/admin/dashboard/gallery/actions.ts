@@ -12,7 +12,7 @@ const imageItemSchema = z.object({
   alt: z.string().min(1, { message: 'Alt text is required.' }),
   hint: z.string().optional(),
   category: z.string().min(1, { message: 'Category is required.' }),
-  videoSrc: z.string().optional().nullish(), // For images, we don't validate videoSrc
+  videoSrc: z.string().optional(), // For images, videoSrc can be an empty string or undefined.
   size: z.enum(['regular', 'large']).optional(),
 });
 
@@ -101,14 +101,27 @@ export async function updateGalleryContent(prevState: any, formData: FormData) {
       }
     }
   } else {
-    console.error('Validation errors:', result.error.flatten());
-    // Try to find a specific error message
-    const fieldErrors = result.error.flatten().fieldErrors;
+    const flattenedErrors = result.error.flatten();
+    console.error('Validation errors:', flattenedErrors);
+    
+    // Check for discriminator error first
+    if (flattenedErrors.formErrors.length > 0 && flattenedErrors.formErrors[0].includes('discriminator')) {
+        const specificMessage = "Invalid item type detected. Please ensure every item is set to either 'Image' or 'Video'.";
+        return {
+            success: false,
+            message: specificMessage,
+            errors: { _form: specificMessage },
+        };
+    }
+
+    // Try to find a specific field error message
+    const fieldErrors = flattenedErrors.fieldErrors;
     const errorKeys = Object.keys(fieldErrors);
     let specificMessage = '';
+
     if (errorKeys.length > 0) {
       const firstErrorKey = errorKeys[0] as keyof typeof fieldErrors;
-      const errorMessage = fieldErrors[firstErrorKey]?.[0] || 'An error occurred.';
+      const errorMessage = (fieldErrors[firstErrorKey] as string[] | undefined)?.[0] || 'An error occurred.';
       const match = firstErrorKey.match(/items\.(\d+)\.(\w+)/);
       if (match) {
         const itemIndex = parseInt(match[1], 10) + 1;
