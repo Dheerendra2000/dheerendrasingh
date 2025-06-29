@@ -11,10 +11,8 @@ export default function LogoutButton() {
 
   const handleLogout = async () => {
     try {
-      // Sign out from Firebase on the client only if auth is initialized
-      if (auth) {
-        await signOut(auth)
-      }
+      // Sign out from Firebase on the client
+      await signOut(auth)
 
       // Call the server action to clear the cookie and trigger the redirect
       await serverLogout()
