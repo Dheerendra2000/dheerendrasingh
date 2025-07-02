@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText, MessageSquare, Images, Home, User, Award, Phone } from 'lucide-react'
+import { FileText, MessageSquare, Images, Home, User, Award, Phone, Newspaper } from 'lucide-react'
 import LogoutButton from './logout-button'
 
 export default function AdminDashboard() {
@@ -67,6 +67,18 @@ export default function AdminDashboard() {
                     <p className="text-xs text-muted-foreground">Update your image gallery.</p>
                     <Button asChild variant="link" className="p-0 h-auto mt-4 text-primary">
                        <a href="/admin/dashboard/gallery">Manage Gallery</a>
+                    </Button>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Media Coverage</CardTitle>
+                    <Newspaper className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <p className="text-xs text-muted-foreground">Manage your press and media features.</p>
+                    <Button asChild variant="link" className="p-0 h-auto mt-4 text-primary">
+                       <a href="/admin/dashboard/media">Manage Media</a>
                     </Button>
                 </CardContent>
             </Card>

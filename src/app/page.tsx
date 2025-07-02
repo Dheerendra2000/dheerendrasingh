@@ -7,6 +7,7 @@ import GallerySection from '@/components/sections/gallery'
 import TestimonialsSection from '@/components/sections/testimonials'
 import CoursesSection from '@/components/sections/courses'
 import ContactSection from '@/components/sections/contact'
+import MediaCoverageSection from '@/components/sections/media-coverage'
 
 export default function Home() {
   return (
@@ -17,6 +18,7 @@ export default function Home() {
         <AboutSection />
         <AchievementsSection />
         <GallerySection />
+        <MediaCoverageSection />
         <TestimonialsSection />
         <CoursesSection />
         <ContactSection />

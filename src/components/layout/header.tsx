@@ -9,12 +9,13 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { ThemeToggle } from "./theme-toggle"
 
 const navLinks = [
-  { name: "Home", href: "#home" },
-  { name: "About", href: "#about" },
-  { name: "Achievements", href: "#achievements" },
-  { name: "Gallery", href: "#gallery" },
-  { name: "Testimonials", href: "#testimonials" },
-  { name: "Courses", href: "#courses" },
+  { name: "Home", href: "/" },
+  { name: "About", href: "/#about" },
+  { name: "Achievements", href: "/#achievements" },
+  { name: "Gallery", href: "/#gallery" },
+  { name: "Media", href: "/media" },
+  { name: "Testimonials", href: "/#testimonials" },
+  { name: "Courses", href: "/#courses" },
 ]
 
 export default function Header() {
@@ -62,7 +63,7 @@ export default function Header() {
             </nav>
             <div className="flex items-center gap-2 ml-6">
                 <Button asChild>
-                <Link href="#contact">Contact</Link>
+                <Link href="/#contact">Contact</Link>
                 </Button>
                 <ThemeToggle />
             </div>
@@ -102,7 +103,7 @@ export default function Header() {
                     </Link>
                   ))}
                   <Button asChild className="w-full">
-                    <Link href="#contact" onClick={closeMenu}>Contact</Link>
+                    <Link href="/#contact" onClick={closeMenu}>Contact</Link>
                   </Button>
                 </div>
               </SheetContent>

@@ -222,3 +222,63 @@ export const defaultContactInfo: ContactInfo = {
   title: "Contact Information",
   description: "For speaking engagements, media inquiries, or course information, please feel free to reach out.",
 };
+
+export type MediaItem = {
+  id: string;
+  type: 'article' | 'podcast' | 'video';
+  title: string;
+  quote: string;
+  outletName: string;
+  outletLogoUrl: string;
+  link: string;
+  coverImageUrl: string;
+  coverImageHint: string;
+  date: string;
+};
+
+export type MediaContent = {
+  items: MediaItem[];
+  filters: string[];
+};
+
+export const defaultMediaContent: MediaContent = {
+  items: [
+    {
+      id: "1",
+      type: "article",
+      title: "The Future of Personal Branding",
+      quote: "Dheerendra Singh offers a revolutionary take on how professionals can build an authentic and powerful personal brand in the digital age.",
+      outletName: "Forbes",
+      outletLogoUrl: "https://raw.githubusercontent.com/Dheerendra2000/hositng_data/main/forbes-logo-white.png",
+      link: "#",
+      coverImageUrl: "https://placehold.co/600x400.png",
+      coverImageHint: "business magazine",
+      date: "2023-10-15",
+    },
+    {
+      id: "2",
+      type: "podcast",
+      title: "The Art of the Keynote",
+      quote: "An in-depth conversation about what it takes to captivate an audience and deliver a message that resonates long after the event is over.",
+      outletName: "The Speaker's Journey",
+      outletLogoUrl: "https://raw.githubusercontent.com/Dheerendra2000/hositng_data/main/spotify-logo-white.png",
+      link: "#",
+      coverImageUrl: "https://placehold.co/600x400.png",
+      coverImageHint: "podcast microphone",
+      date: "2023-09-28",
+    },
+    {
+      id: "3",
+      type: "video",
+      title: "Live on Startup Central",
+      quote: "Discussing the critical role of public relations for early-stage startups and how to gain traction with a limited budget.",
+      outletName: "Tech TV",
+      outletLogoUrl: "https://raw.githubusercontent.com/Dheerendra2000/hositng_data/main/youtube-logo-white.png",
+      link: "#",
+      coverImageUrl: "https://placehold.co/600x400.png",
+      coverImageHint: "tv studio",
+      date: "2023-08-05",
+    },
+  ],
+  filters: ["all", "article", "podcast", "video"],
+};
