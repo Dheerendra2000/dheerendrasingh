@@ -14,20 +14,15 @@ const galleryItemSchema = z.object({
   category: z.string().min(1, { message: 'Category is required.' }),
   videoSrc: z.string().url({ message: 'Video URL must be a valid URL.' }).optional().or(z.literal('')),
   size: z.enum(['regular', 'large']).optional(),
-}).superRefine((data, ctx) => {
-    if (data.type === 'image' && (!data.src || data.src.trim() === '')) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['src'], message: 'Image URL is required for image items.' });
-    }
-    if (data.type === 'video' && (!data.videoSrc || data.videoSrc.trim() === '')) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['videoSrc'], message: 'A valid Video URL is required for video items.'});
-    }
-});
-
+})
 
 const galleryContentSchema = z.object({
   items: z.array(galleryItemSchema),
   filters: z.array(z.string()),
 });
+
+// We need a custom refinement that can access the form data to check for files
+// so we can't do it at the individual item level easily. We'll check it inside the action.
 
 export async function updateGalleryContent(prevState: any, formData: FormData) {
   if (initError || !db || !storage) {
@@ -49,6 +44,30 @@ export async function updateGalleryContent(prevState: any, formData: FormData) {
   } catch (error) {
      return { success: false, message: 'Invalid data format.', errors: { _form: 'Gallery data is not valid JSON.' } };
   }
+  
+  // Custom validation check before Zod parse
+  for (let i = 0; i < parsedData.items.length; i++) {
+    const item = parsedData.items[i];
+    const file = formData.get(`src-file-${item.id}`) as File | null;
+    
+    // An image item is invalid if it has no existing `src` URL AND no new file is being uploaded.
+    if (item.type === 'image' && !item.src && (!file || file.size === 0)) {
+        const errorMessage = `Error in Item #${i + 1}: Image is required. Please upload a file or provide a URL.`;
+        return { success: false, message: errorMessage, errors: { _form: errorMessage }};
+    }
+     // A video item is invalid if it has no existing videoSrc AND no existing poster/src URL unless a new file is uploaded
+    if (item.type === 'video') {
+       if (!item.videoSrc || item.videoSrc.trim() === '') {
+           const errorMessage = `Error in Item #${i + 1}: A valid Video URL is required for video items.`;
+           return { success: false, message: errorMessage, errors: { _form: errorMessage }};
+       }
+       if (!item.src && (!file || file.size === 0)) {
+           const errorMessage = `Error in Item #${i + 1}: A video poster image is required. Please upload a file.`;
+           return { success: false, message: errorMessage, errors: { _form: errorMessage }};
+       }
+    }
+  }
+
 
   const result = galleryContentSchema.safeParse(parsedData);
 
