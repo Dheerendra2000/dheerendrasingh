@@ -1,7 +1,6 @@
 'use client'
 
-import { useActionState, useEffect, useState } from 'react'
-import { useFormStatus } from 'react-dom'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -10,44 +9,19 @@ import { useToast } from '@/hooks/use-toast'
 import { updateMediaContent } from './actions'
 import type { MediaContent, MediaItem } from '@/lib/contentDefaults'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Loader2, CalendarIcon } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { CalendarIcon } from 'lucide-react'
 import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 
-function SubmitButton() {
-  const { pending } = useFormStatus()
-  return (
-    <Button type="submit" disabled={pending} className="w-full mt-6">
-      {pending ? 'Saving...' : 'Save All Changes'}
-    </Button>
-  )
-}
-
 export default function MediaForm({ content }: { content: MediaContent }) {
-  const [state, formAction] = useActionState(updateMediaContent, null)
   const { toast } = useToast()
   const [items, setItems] = useState<MediaItem[]>(content.items)
-
-  useEffect(() => {
-    if (!state) return;
-    if (state.success) {
-      toast({
-        title: 'Success!',
-        description: state.message,
-      })
-    } else if (state.message) {
-       toast({
-        title: 'Error updating content',
-        description: state.message,
-        variant: 'destructive',
-      })
-    }
-  }, [state, toast])
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleInputChange = (id: string, field: keyof Omit<MediaItem, 'id'>, value: string) => {
     setItems(prev =>
@@ -83,10 +57,35 @@ export default function MediaForm({ content }: { content: MediaContent }) {
     setItems(prev => prev.filter(item => item.id !== id))
   }
 
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setIsSubmitting(true)
+    setError(null)
+    
+    const formData = new FormData()
+    formData.append('media', JSON.stringify(items))
+
+    const result = await updateMediaContent(formData)
+
+    if (result.success) {
+      toast({
+        title: 'Success!',
+        description: result.message,
+      })
+    } else {
+      setError(result.message || 'An unknown error occurred.')
+      toast({
+        title: 'Error updating content',
+        description: result.message,
+        variant: 'destructive',
+      })
+    }
+
+    setIsSubmitting(false)
+  }
+
   return (
-    <form action={formAction}>
-        <input type="hidden" name="media" value={JSON.stringify(items)} />
-        
+    <form onSubmit={handleSubmit}>
         <div className="space-y-6">
           {items.map((item) => (
             <Card key={item.id} className="bg-secondary/50 relative">
@@ -177,10 +176,10 @@ export default function MediaForm({ content }: { content: MediaContent }) {
           ))}
         </div>
 
-        {state?.errors?._form && 
+        {error && 
             <Alert variant="destructive" className="mt-4">
               <AlertTitle>Save Error</AlertTitle>
-              <AlertDescription>{state.errors._form}</AlertDescription>
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
         }
 
@@ -189,7 +188,9 @@ export default function MediaForm({ content }: { content: MediaContent }) {
             Add New Media Feature
         </Button>
         
-        <SubmitButton />
+        <Button type="submit" disabled={isSubmitting} className="w-full mt-6">
+          {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save All Changes'}
+        </Button>
     </form>
   )
 }

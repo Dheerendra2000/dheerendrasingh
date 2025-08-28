@@ -21,12 +21,16 @@ const mediaContentSchema = z.object({
   items: z.array(mediaItemSchema),
 });
 
-export async function updateMediaContent(prevState: any, formData: FormData) {
+type ReturnValue = {
+    success: boolean;
+    message: string;
+}
+
+export async function updateMediaContent(formData: FormData): Promise<ReturnValue> {
   if (initError || !db) {
     return { 
         success: false,
-        message: 'Failed to save: Database not connected.',
-        errors: { _form: initError || "Database not initialized." },
+        message: `Failed to save: ${initError || "Database not initialized."}`,
     }
   }
 
@@ -35,8 +39,7 @@ export async function updateMediaContent(prevState: any, formData: FormData) {
   if (typeof mediaJson !== 'string') {
     return { 
         success: false,
-        message: 'Invalid form data submitted.',
-        errors: { _form: 'Could not find media data.' },
+        message: 'Invalid form data submitted. Could not find media data.',
     }
   }
 
@@ -49,42 +52,14 @@ export async function updateMediaContent(prevState: any, formData: FormData) {
   } catch (error) {
      return { 
         success: false,
-        message: 'Invalid data format.',
-        errors: { _form: 'Media data is not valid JSON.' },
+        message: 'Invalid data format. Media data is not valid JSON.',
     }
   }
   
   // Re-check schema against the items only, as filters are derived.
   const result = mediaContentSchema.safeParse({ items: parsedData.items });
 
-  if (result.success) {
-    try {
-      const dataToSave = { ...result.data, filters: parsedData.filters };
-      await db.collection('content').doc('media').set(dataToSave, { merge: true });
-      revalidatePath('/'); // Revalidate home page
-      revalidatePath('/media'); // Revalidate the new media page
-      revalidatePath('/admin/dashboard/media'); // Revalidate this page
-      return { 
-          success: true,
-          message: 'Media coverage updated successfully!',
-          errors: null,
-      }
-    } catch (e: any) {
-      console.error('Failed to write media content to Firestore:', e)
-       let userFriendlyMessage = 'Failed to save content. A server error occurred.';
-       if (e.code === 7) { // PERMISSION_DENIED
-            userFriendlyMessage = `Save failed: Permission Denied. This is likely temporary. Please wait and try again.`;
-       } else if (e.message?.includes('Cloud Firestore API has not been used')) {
-            userFriendlyMessage = `Save failed: Firestore database not created. Please create it in the Firebase Console.`;
-       }
-
-      return {
-        success: false,
-        message: userFriendlyMessage,
-        errors: { _form: e.message || "Firestore error." },
-      }
-    }
-  } else {
+  if (!result.success) {
     const firstIssue = result.error.issues[0];
     let specificMessage = 'Please correct the errors and try again.';
     if (firstIssue) {
@@ -102,7 +77,31 @@ export async function updateMediaContent(prevState: any, formData: FormData) {
     return {
         success: false,
         message: specificMessage,
-        errors: { _form: specificMessage },
+    }
+  }
+
+  try {
+    const dataToSave = { ...result.data, filters: parsedData.filters };
+    await db.collection('content').doc('media').set(dataToSave, { merge: true });
+    revalidatePath('/'); // Revalidate home page
+    revalidatePath('/media'); // Revalidate the new media page
+    revalidatePath('/admin/dashboard/media'); // Revalidate this page
+    return { 
+        success: true,
+        message: 'Media coverage updated successfully!',
+    }
+  } catch (e: any) {
+    console.error('Failed to write media content to Firestore:', e)
+     let userFriendlyMessage = 'Failed to save content. A server error occurred.';
+     if (e.code === 7) { // PERMISSION_DENIED
+          userFriendlyMessage = `Save failed: Permission Denied. This is likely a temporary issue. Please wait a moment and try again.`;
+     } else if (e.message?.includes('Cloud Firestore API has not been used')) {
+          userFriendlyMessage = `Save failed: The Firestore database has not been created for this project. Please create it in the Firebase Console.`;
+     }
+
+    return {
+      success: false,
+      message: userFriendlyMessage,
     }
   }
 }

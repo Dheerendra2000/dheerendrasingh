@@ -17,12 +17,16 @@ const testimonialsContentSchema = z.object({
   testimonials: z.array(testimonialSchema),
 });
 
-export async function updateTestimonialsContent(prevState: any, formData: FormData) {
+type ReturnValue = {
+    success: boolean;
+    message: string;
+}
+
+export async function updateTestimonialsContent(formData: FormData): Promise<ReturnValue> {
   if (initError || !db) {
     return { 
         success: false,
-        message: 'Failed to save: Database not connected.',
-        errors: { _form: initError || "Database not initialized." },
+        message: `Failed to save: ${initError || "Database not initialized."}`,
     }
   }
 
@@ -31,8 +35,7 @@ export async function updateTestimonialsContent(prevState: any, formData: FormDa
   if (typeof testimonialsJson !== 'string') {
     return { 
         success: false,
-        message: 'Invalid form data submitted.',
-        errors: { _form: 'Could not find testimonials data.' },
+        message: 'Invalid form data submitted. Could not find testimonials data.',
     }
   }
 
@@ -42,39 +45,13 @@ export async function updateTestimonialsContent(prevState: any, formData: FormDa
   } catch (error) {
      return { 
         success: false,
-        message: 'Invalid data format.',
-        errors: { _form: 'Testimonials data is not valid JSON.' },
+        message: 'Invalid data format. Testimonials data is not valid JSON.',
     }
   }
 
   const result = testimonialsContentSchema.safeParse(parsedData)
 
-  if (result.success) {
-    try {
-      await db.collection('content').doc('testimonials').set(result.data, { merge: true });
-      revalidatePath('/'); // Revalidate the home page
-      revalidatePath('/admin/dashboard/testimonials'); // Revalidate this page
-      return { 
-          success: true,
-          message: 'Testimonials updated successfully!',
-          errors: null,
-      }
-    } catch (e: any) {
-      console.error('Failed to write testimonials content to Firestore:', e)
-       let userFriendlyMessage = 'Failed to save content. A server error occurred.';
-       if (e.code === 7) { // PERMISSION_DENIED
-            userFriendlyMessage = `Save failed: Permission Denied. Since you've already set the roles, this is likely a temporary delay. Please wait a moment and try saving again.`;
-       } else if (e.message?.includes('Cloud Firestore API has not been used')) {
-            userFriendlyMessage = `Save failed: The Firestore database has not been created for this project. Please create it in the Firebase Console before saving content.`;
-       }
-
-      return {
-        success: false,
-        message: userFriendlyMessage,
-        errors: { _form: e.message || "Firestore error." },
-      }
-    }
-  } else {
+  if (!result.success) {
     const firstIssue = result.error.issues[0];
     let specificMessage = 'Please correct the errors and try again.';
     if (firstIssue) {
@@ -94,7 +71,29 @@ export async function updateTestimonialsContent(prevState: any, formData: FormDa
     return {
         success: false,
         message: specificMessage,
-        errors: { _form: specificMessage },
+    }
+  }
+
+  try {
+    await db.collection('content').doc('testimonials').set(result.data, { merge: true });
+    revalidatePath('/'); // Revalidate the home page
+    revalidatePath('/admin/dashboard/testimonials'); // Revalidate this page
+    return { 
+        success: true,
+        message: 'Testimonials updated successfully!',
+    }
+  } catch (e: any) {
+    console.error('Failed to write testimonials content to Firestore:', e)
+     let userFriendlyMessage = 'Failed to save content. A server error occurred.';
+     if (e.code === 7) { // PERMISSION_DENIED
+          userFriendlyMessage = `Save failed: Permission Denied. This is likely a temporary issue. Please wait a moment and try again.`;
+     } else if (e.message?.includes('Cloud Firestore API has not been used')) {
+          userFriendlyMessage = `Save failed: The Firestore database has not been created for this project. Please create it in the Firebase Console.`;
+     }
+
+    return {
+      success: false,
+      message: userFriendlyMessage,
     }
   }
 }

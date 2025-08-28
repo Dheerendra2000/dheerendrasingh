@@ -12,14 +12,17 @@ const contactInfoSchema = z.object({
   address: z.string().min(1, { message: 'Address is required.' }),
 })
 
-// This function is designed to be used in a useActionState hook.
-export async function updateContactInfo(prevState: any, formData: FormData) {
+type ReturnValue = {
+    success: boolean;
+    message: string;
+    errors?: Record<string, string[]> | null;
+}
+
+export async function updateContactInfo(formData: FormData): Promise<ReturnValue> {
   if (initError || !db) {
     return { 
         success: false,
-        message: 'Failed to save: Database not connected.',
-        errors: null,
-        error: initError || "Database not initialized.",
+        message: `Failed to save: ${initError || "Database not initialized."}`,
     }
   }
 
@@ -33,40 +36,34 @@ export async function updateContactInfo(prevState: any, formData: FormData) {
 
   const result = contactInfoSchema.safeParse(rawData)
 
-  if (result.success) {
-    try {
-      await db.collection('content').doc('contactInfo').set(result.data, { merge: true });
-      revalidatePath('/'); // Revalidate the home page to show new content
-      revalidatePath('/admin/dashboard/contact'); // Revalidate this page
-      return { 
-          success: true,
-          message: 'Contact information updated successfully!',
-          errors: null,
-          error: null,
-      }
-    } catch (e: any) {
-      console.error('Failed to write contact info to Firestore:', e)
-       let userFriendlyMessage = 'Failed to save content. A server error occurred.';
-       if (e.code === 7) { // PERMISSION_DENIED
-            userFriendlyMessage = `Save failed: Permission Denied. Since you've already set the roles, this is likely a temporary delay. Please wait a moment and try saving again.`;
-       } else if (e.message?.includes('Cloud Firestore API has not been used')) {
-            userFriendlyMessage = `Save failed: The Firestore database has not been created for this project. Please create it in the Firebase Console before saving content.`;
-       }
-
-      return {
-        success: false,
-        message: userFriendlyMessage,
-        errors: null,
-        error: e.message || "Firestore error."
-      }
-    }
-  } else {
-    console.error('Validation errors:', result.error.flatten().fieldErrors)
+  if (!result.success) {
     return {
         success: false,
         message: 'Please correct the errors and try again.',
         errors: result.error.flatten().fieldErrors,
-        error: "Validation failed."
+    }
+  }
+  
+  try {
+    await db.collection('content').doc('contactInfo').set(result.data, { merge: true });
+    revalidatePath('/');
+    revalidatePath('/admin/dashboard/contact');
+    return { 
+        success: true,
+        message: 'Contact information updated successfully!',
+    }
+  } catch (e: any) {
+    console.error('Failed to write contact info to Firestore:', e)
+     let userFriendlyMessage = 'Failed to save content. A server error occurred.';
+     if (e.code === 7) { // PERMISSION_DENIED
+          userFriendlyMessage = `Save failed: Permission Denied. This is likely a temporary issue. Please wait a moment and try again.`;
+     } else if (e.message?.includes('Cloud Firestore API has not been used')) {
+          userFriendlyMessage = `Save failed: The Firestore database has not been created for this project. Please create it in the Firebase Console.`;
+     }
+
+    return {
+      success: false,
+      message: userFriendlyMessage,
     }
   }
 }

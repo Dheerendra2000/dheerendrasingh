@@ -19,12 +19,16 @@ const coursesContentSchema = z.object({
   courses: z.array(courseSchema),
 });
 
-export async function updateCoursesContent(prevState: any, formData: FormData) {
+type ReturnValue = {
+    success: boolean;
+    message: string;
+}
+
+export async function updateCoursesContent(formData: FormData): Promise<ReturnValue> {
   if (initError || !db) {
     return { 
         success: false,
-        message: 'Failed to save: Database not connected.',
-        errors: { _form: initError || "Database not initialized." },
+        message: `Failed to save: ${initError || "Database not initialized."}`,
     }
   }
 
@@ -33,8 +37,7 @@ export async function updateCoursesContent(prevState: any, formData: FormData) {
   if (typeof coursesJson !== 'string') {
     return { 
         success: false,
-        message: 'Invalid form data submitted.',
-        errors: { _form: 'Could not find courses data.' },
+        message: 'Invalid form data submitted. Could not find courses data.',
     }
   }
 
@@ -44,39 +47,13 @@ export async function updateCoursesContent(prevState: any, formData: FormData) {
   } catch (error) {
      return { 
         success: false,
-        message: 'Invalid data format.',
-        errors: { _form: 'Courses data is not valid JSON.' },
+        message: 'Invalid data format. Courses data is not valid JSON.',
     }
   }
 
   const result = coursesContentSchema.safeParse(parsedData)
 
-  if (result.success) {
-    try {
-      await db.collection('content').doc('courses').set(result.data, { merge: true });
-      revalidatePath('/'); // Revalidate the home page
-      revalidatePath('/admin/dashboard/courses'); // Revalidate this page
-      return { 
-          success: true,
-          message: 'Courses updated successfully!',
-          errors: null,
-      }
-    } catch (e: any) {
-      console.error('Failed to write courses content to Firestore:', e)
-       let userFriendlyMessage = 'Failed to save content. A server error occurred.';
-       if (e.code === 7) { // PERMISSION_DENIED
-            userFriendlyMessage = `Save failed: Permission Denied. Since you've already set the roles, this is likely a temporary delay. Please wait a moment and try saving again.`;
-       } else if (e.message?.includes('Cloud Firestore API has not been used')) {
-            userFriendlyMessage = `Save failed: The Firestore database has not been created for this project. Please create it in the Firebase Console before saving content.`;
-       }
-
-      return {
-        success: false,
-        message: userFriendlyMessage,
-        errors: { _form: e.message || "Firestore error." },
-      }
-    }
-  } else {
+  if (!result.success) {
     const firstIssue = result.error.issues[0];
     let specificMessage = 'Please correct the errors and try again.';
     if (firstIssue) {
@@ -96,7 +73,29 @@ export async function updateCoursesContent(prevState: any, formData: FormData) {
     return {
         success: false,
         message: specificMessage,
-        errors: { _form: specificMessage },
+    }
+  }
+
+  try {
+    await db.collection('content').doc('courses').set(result.data, { merge: true });
+    revalidatePath('/'); // Revalidate the home page
+    revalidatePath('/admin/dashboard/courses'); // Revalidate this page
+    return { 
+        success: true,
+        message: 'Courses updated successfully!',
+    }
+  } catch (e: any) {
+    console.error('Failed to write courses content to Firestore:', e)
+     let userFriendlyMessage = 'Failed to save content. A server error occurred.';
+     if (e.code === 7) { // PERMISSION_DENIED
+          userFriendlyMessage = `Save failed: Permission Denied. This is likely a temporary issue. Please wait a moment and try again.`;
+     } else if (e.message?.includes('Cloud Firestore API has not been used')) {
+          userFriendlyMessage = `Save failed: The Firestore database has not been created for this project. Please create it in the Firebase Console.`;
+     }
+
+    return {
+      success: false,
+      message: userFriendlyMessage,
     }
   }
 }

@@ -2,7 +2,7 @@
 
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
-import { db, initError, clientEmail } from '@/lib/firebase-admin'
+import { db, initError } from '@/lib/firebase-admin'
 
 const aboutContentSchema = z.object({
   heading: z.string().min(1, { message: 'Heading is required.' }),
@@ -13,14 +13,17 @@ const aboutContentSchema = z.object({
   imageHint: z.string().max(20, { message: "Hint can't be more than two words." }).optional(),
 })
 
-// This function is designed to be used in a useActionState hook.
-export async function updateAboutContent(prevState: any, formData: FormData) {
+type ReturnValue = {
+    success: boolean;
+    message: string;
+    errors?: Record<string, string[]> | null;
+}
+
+export async function updateAboutContent(formData: FormData): Promise<ReturnValue> {
   if (initError || !db) {
     return { 
         success: false,
-        message: 'Failed to save: Database not connected.',
-        errors: null,
-        error: initError || "Database not initialized.",
+        message: `Failed to save: ${initError || "Database not initialized."}`,
     }
   }
 
@@ -35,46 +38,41 @@ export async function updateAboutContent(prevState: any, formData: FormData) {
 
   const result = aboutContentSchema.safeParse(rawData)
 
-  if (result.success) {
-    try {
-      const highlightsArray = result.data.highlights.split('\n').map(h => h.trim()).filter(h => h);
-      const contentToSave = {
-        ...result.data,
-        highlights: highlightsArray,
-      };
-      
-      await db.collection('content').doc('about').set(contentToSave, { merge: true });
-      revalidatePath('/'); // Revalidate the home page to show new content
-      revalidatePath('/admin/dashboard/about'); // Revalidate this page
-      return { 
-          success: true,
-          message: 'About page content updated successfully!',
-          errors: null,
-          error: null,
-      }
-    } catch (e: any) {
-      console.error('Failed to write about content to Firestore:', e)
-       let userFriendlyMessage = 'Failed to save content. A server error occurred.';
-       if (e.code === 7) { // PERMISSION_DENIED
-            userFriendlyMessage = `Save failed: Permission Denied. Since you've already set the roles, this is likely a temporary delay. Please wait a moment and try saving again.`;
-       } else if (e.message?.includes('Cloud Firestore API has not been used')) {
-            userFriendlyMessage = `Save failed: The Firestore database has not been created for this project. Please create it in the Firebase Console before saving content.`;
-       }
-
-      return {
-        success: false,
-        message: userFriendlyMessage,
-        errors: null,
-        error: e.message || "Firestore error."
-      }
-    }
-  } else {
+  if (!result.success) {
     console.error('Validation errors:', result.error.flatten().fieldErrors)
     return {
         success: false,
         message: 'Please correct the errors and try again.',
         errors: result.error.flatten().fieldErrors,
-        error: "Validation failed."
+    }
+  }
+
+  try {
+    const highlightsArray = result.data.highlights.split('\n').map(h => h.trim()).filter(h => h);
+    const contentToSave = {
+      ...result.data,
+      highlights: highlightsArray,
+    };
+    
+    await db.collection('content').doc('about').set(contentToSave, { merge: true });
+    revalidatePath('/');
+    revalidatePath('/admin/dashboard/about');
+    return { 
+        success: true,
+        message: 'About page content updated successfully!',
+    }
+  } catch (e: any) {
+    console.error('Failed to write about content to Firestore:', e)
+     let userFriendlyMessage = 'Failed to save content. A server error occurred.';
+     if (e.code === 7) { // PERMISSION_DENIED
+          userFriendlyMessage = `Save failed: Permission Denied. This is likely a temporary issue. Please wait a moment and try again.`;
+     } else if (e.message?.includes('Cloud Firestore API has not been used')) {
+          userFriendlyMessage = `Save failed: The Firestore database has not been created for this project. Please create it in the Firebase Console.`;
+     }
+
+    return {
+      success: false,
+      message: userFriendlyMessage,
     }
   }
 }

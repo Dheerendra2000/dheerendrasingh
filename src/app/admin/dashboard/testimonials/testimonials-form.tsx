@@ -1,7 +1,6 @@
 'use client'
 
-import { useActionState, useEffect, useState } from 'react'
-import { useFormStatus } from 'react-dom'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -10,38 +9,14 @@ import { useToast } from '@/hooks/use-toast'
 import { updateTestimonialsContent } from './actions'
 import type { TestimonialsContent, Testimonial } from '@/lib/contentDefaults'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Loader2 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
-function SubmitButton() {
-  const { pending } = useFormStatus()
-  return (
-    <Button type="submit" disabled={pending} className="w-full mt-6">
-      {pending ? 'Saving...' : 'Save All Changes'}
-    </Button>
-  )
-}
-
 export default function TestimonialsForm({ content }: { content: TestimonialsContent }) {
-  const [state, formAction] = useActionState(updateTestimonialsContent, null)
   const { toast } = useToast()
   const [testimonials, setTestimonials] = useState<Testimonial[]>(content.testimonials)
-
-  useEffect(() => {
-    if (!state) return;
-    if (state.success) {
-      toast({
-        title: 'Success!',
-        description: state.message,
-      })
-    } else if (state.message) {
-       toast({
-        title: 'Error updating content',
-        description: state.message,
-        variant: 'destructive',
-      })
-    }
-  }, [state, toast])
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleInputChange = (id: string, field: keyof Omit<Testimonial, 'id'>, value: string) => {
     setTestimonials(prev => 
@@ -60,10 +35,35 @@ export default function TestimonialsForm({ content }: { content: TestimonialsCon
     setTestimonials(prev => prev.filter(item => item.id !== id))
   }
 
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setIsSubmitting(true)
+    setError(null)
+    
+    const formData = new FormData()
+    formData.append('testimonials', JSON.stringify(testimonials))
+
+    const result = await updateTestimonialsContent(formData)
+
+    if (result.success) {
+      toast({
+        title: 'Success!',
+        description: result.message,
+      })
+    } else {
+      setError(result.message || 'An unknown error occurred.')
+      toast({
+        title: 'Error updating content',
+        description: result.message,
+        variant: 'destructive',
+      })
+    }
+
+    setIsSubmitting(false)
+  }
+
   return (
-    <form action={formAction}>
-        <input type="hidden" name="testimonials" value={JSON.stringify(testimonials)} />
-        
+    <form onSubmit={handleSubmit}>
         <div className="space-y-6">
           {testimonials.map((testimonial) => (
             <Card key={testimonial.id} className="bg-secondary/50 relative">
@@ -136,10 +136,10 @@ export default function TestimonialsForm({ content }: { content: TestimonialsCon
           ))}
         </div>
 
-        {state?.errors?._form && 
+        {error && 
             <Alert variant="destructive" className="mt-4">
               <AlertTitle>Save Error</AlertTitle>
-              <AlertDescription>{state.errors._form}</AlertDescription>
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
         }
 
@@ -148,7 +148,9 @@ export default function TestimonialsForm({ content }: { content: TestimonialsCon
             Add New Testimonial
         </Button>
         
-        <SubmitButton />
+        <Button type="submit" disabled={isSubmitting} className="w-full mt-6">
+          {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save All Changes'}
+        </Button>
     </form>
   )
 }

@@ -1,7 +1,6 @@
 'use client'
 
-import { useActionState, useEffect, useState } from 'react'
-import { useFormStatus } from 'react-dom'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -10,38 +9,14 @@ import { useToast } from '@/hooks/use-toast'
 import { updateAchievementsContent } from './actions'
 import type { AchievementsContent, Achievement } from '@/lib/contentDefaults'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Loader2 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
-function SubmitButton() {
-  const { pending } = useFormStatus()
-  return (
-    <Button type="submit" disabled={pending} className="w-full mt-6">
-      {pending ? 'Saving...' : 'Save All Changes'}
-    </Button>
-  )
-}
-
 export default function AchievementsForm({ content }: { content: AchievementsContent }) {
-  const [state, formAction] = useActionState(updateAchievementsContent, null)
   const { toast } = useToast()
   const [achievements, setAchievements] = useState<Achievement[]>(content.achievements)
-
-  useEffect(() => {
-    if (!state) return;
-    if (state.success) {
-      toast({
-        title: 'Success!',
-        description: state.message,
-      })
-    } else if (state.message) {
-       toast({
-        title: 'Error updating content',
-        description: state.message,
-        variant: 'destructive',
-      })
-    }
-  }, [state, toast])
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleInputChange = (id: string, field: keyof Omit<Achievement, 'id'>, value: string) => {
     setAchievements(prev => 
@@ -60,10 +35,35 @@ export default function AchievementsForm({ content }: { content: AchievementsCon
     setAchievements(prev => prev.filter(ach => ach.id !== id))
   }
 
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setIsSubmitting(true)
+    setError(null)
+    
+    const formData = new FormData()
+    formData.append('achievements', JSON.stringify(achievements))
+
+    const result = await updateAchievementsContent(formData)
+
+    if (result.success) {
+      toast({
+        title: 'Success!',
+        description: result.message,
+      })
+    } else {
+      setError(result.message || 'An unknown error occurred.')
+      toast({
+        title: 'Error updating content',
+        description: result.message,
+        variant: 'destructive',
+      })
+    }
+
+    setIsSubmitting(false)
+  }
+
   return (
-    <form action={formAction}>
-        <input type="hidden" name="achievements" value={JSON.stringify(achievements)} />
-        
+    <form onSubmit={handleSubmit}>
         <div className="space-y-6">
           {achievements.map((achievement) => (
             <Card key={achievement.id} className="bg-secondary/50 relative">
@@ -124,10 +124,10 @@ export default function AchievementsForm({ content }: { content: AchievementsCon
           ))}
         </div>
 
-        {state?.errors?._form && 
+        {error && 
             <Alert variant="destructive" className="mt-4">
               <AlertTitle>Save Error</AlertTitle>
-              <AlertDescription>{state.errors._form}</AlertDescription>
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
         }
 
@@ -136,7 +136,9 @@ export default function AchievementsForm({ content }: { content: AchievementsCon
             Add New Achievement
         </Button>
         
-        <SubmitButton />
+        <Button type="submit" disabled={isSubmitting} className="w-full mt-6">
+            {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save All Changes'}
+        </Button>
     </form>
   )
 }
