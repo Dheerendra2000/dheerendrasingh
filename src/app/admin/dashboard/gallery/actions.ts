@@ -21,17 +21,22 @@ const galleryContentSchema = z.object({
   filters: z.array(z.string()),
 });
 
-export async function updateGalleryContent(prevState: any, formData: FormData) {
+type ReturnValue = {
+    success: boolean;
+    message: string;
+}
+
+export async function updateGalleryContent(formData: FormData): Promise<ReturnValue> {
   const bucketName = process.env.FIREBASE_STORAGE_BUCKET;
 
   if (initError || !db || !storage || !bucketName) {
     const errorMessage = initError || "Database/Storage not initialized or Bucket Name missing.";
-    return { success: false, message: `Failed to save: ${errorMessage}`, errors: { _form: errorMessage } };
+    return { success: false, message: `Failed to save: ${errorMessage}` };
   }
 
   const galleryJson = formData.get('gallery');
   if (typeof galleryJson !== 'string') {
-    return { success: false, message: 'Invalid form data submitted.', errors: { _form: 'Could not find gallery data.' } };
+    return { success: false, message: 'Invalid form data submitted. Could not find gallery data.' };
   }
 
   let parsedData;
@@ -41,7 +46,7 @@ export async function updateGalleryContent(prevState: any, formData: FormData) {
     const filters = ["all", ...categories];
     parsedData = { items: rawItems, filters };
   } catch (error) {
-     return { success: false, message: 'Invalid data format.', errors: { _form: 'Gallery data is not valid JSON.' } };
+     return { success: false, message: 'Invalid data format. Gallery data is not valid JSON.' };
   }
   
   // Custom validation check for required files before Zod parse
@@ -51,18 +56,18 @@ export async function updateGalleryContent(prevState: any, formData: FormData) {
     
     if (item.type === 'image' && !item.src && (!posterFile || posterFile.size === 0)) {
         const errorMessage = `Error in Item #${i + 1}: An image is required. Please upload a file or provide a URL.`;
-        return { success: false, message: errorMessage, errors: { _form: errorMessage }};
+        return { success: false, message: errorMessage};
     }
      
     if (item.type === 'video') {
        const videoFile = formData.get(`video-file-${item.id}`) as File | null;
        if (!item.videoSrc && (!videoFile || videoFile.size === 0)) {
            const errorMessage = `Error in Item #${i + 1}: A video file is required. Please upload one.`;
-           return { success: false, message: errorMessage, errors: { _form: errorMessage }};
+           return { success: false, message: errorMessage};
        }
        if (!item.src && (!posterFile || posterFile.size === 0)) {
            const errorMessage = `Error in Item #${i + 1}: A video poster image is required. Please upload a file for the "Video Poster".`;
-           return { success: false, message: errorMessage, errors: { _form: errorMessage }};
+           return { success: false, message: errorMessage};
        }
     }
   }
@@ -85,7 +90,7 @@ export async function updateGalleryContent(prevState: any, formData: FormData) {
         }
     }
     console.error('Validation errors:', result.error.format());
-    return { success: false, message: specificMessage, errors: { _form: specificMessage } };
+    return { success: false, message: specificMessage };
   }
 
   try {
@@ -131,7 +136,7 @@ export async function updateGalleryContent(prevState: any, formData: FormData) {
     await db.collection('content').doc('gallery').set(finalData, { merge: true });
     revalidatePath('/');
     revalidatePath('/admin/dashboard/gallery');
-    return { success: true, message: 'Gallery updated successfully!', errors: null };
+    return { success: true, message: 'Gallery updated successfully!' };
 
   } catch (e: any) {
     console.error('Failed to write gallery content to Firestore or upload file:', e);
@@ -143,6 +148,6 @@ export async function updateGalleryContent(prevState: any, formData: FormData) {
     } else if (e.message?.includes('Bucket name not specified or invalid')) {
         userFriendlyMessage = `The Storage Bucket is not configured correctly on the server. Please check environment variables.`;
     }
-    return { success: false, message: userFriendlyMessage, errors: { _form: e.message || "Firestore/Storage error." } };
+    return { success: false, message: userFriendlyMessage };
   }
 }

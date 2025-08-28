@@ -1,8 +1,7 @@
 
 'use client'
 
-import { useActionState, useEffect, useState, useMemo } from 'react'
-import { useFormStatus } from 'react-dom'
+import { useState, useEffect, useMemo } from 'react'
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,7 +10,7 @@ import { useToast } from '@/hooks/use-toast'
 import { updateGalleryContent } from './actions'
 import type { GalleryContent, GalleryItem } from '@/lib/contentDefaults'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Plus, Trash2, GripVertical, ChevronsUpDown, Check } from 'lucide-react'
+import { Plus, Trash2, GripVertical, ChevronsUpDown, Check, Loader2 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import ImageUpload from '@/components/ui/image-upload'
@@ -37,15 +36,6 @@ import {
   CommandSeparator,
 } from "@/components/ui/command"
 import { cn } from '@/lib/utils'
-
-function SubmitButton() {
-  const { pending } = useFormStatus()
-  return (
-    <Button type="submit" disabled={pending} className="w-full mt-6">
-      {pending ? 'Saving...' : 'Save All Changes'}
-    </Button>
-  )
-}
 
 function CategoryCombobox({ value, onChange, categories }: { value: string; onChange: (value: string) => void; categories: string[] }) {
   const [open, setOpen] = useState(false);
@@ -102,11 +92,12 @@ function CategoryCombobox({ value, onChange, categories }: { value: string; onCh
 
 
 export default function GalleryForm({ content }: { content: GalleryContent }) {
-  const [state, formAction] = useActionState(updateGalleryContent, null)
   const { toast } = useToast()
   const [items, setItems] = useState<GalleryItem[]>(content.items)
   const [posterFiles, setPosterFiles] = useState<Map<string, File | null>>(new Map());
   const [videoFiles, setVideoFiles] = useState<Map<string, File | null>>(new Map());
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isBrowser, setIsBrowser] = useState(false);
 
   const existingCategories = [...new Set(items.map((item) => item.category?.trim()).filter(Boolean))].sort();
@@ -114,17 +105,6 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
   useEffect(() => {
     setIsBrowser(true);
   }, []);
-
-  useEffect(() => {
-    if (!state) return;
-    if (state.success) {
-      toast({ title: 'Success!', description: state.message });
-      setPosterFiles(new Map());
-      setVideoFiles(new Map());
-    } else if (state.message) {
-       toast({ title: 'Error updating content', description: state.message, variant: 'destructive' });
-    }
-  }, [state, toast])
 
   const handleInputChange = (id: string, field: keyof Omit<GalleryItem, 'id'>, value: string) => {
     setItems(prev => prev.map(item => {
@@ -173,7 +153,12 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
     setItems(newItems);
   };
 
-  const enhancedFormAction = (formData: FormData) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+
+    const formData = new FormData();
     formData.set('gallery', JSON.stringify(items));
     posterFiles.forEach((file, id) => {
       if (file) formData.set(`src-file-${id}`, file);
@@ -181,11 +166,23 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
     videoFiles.forEach((file, id) => {
         if (file) formData.set(`video-file-${id}`, file);
     });
-    formAction(formData);
+
+    const result = await updateGalleryContent(formData);
+
+    if (result.success) {
+      toast({ title: 'Success!', description: result.message });
+      setPosterFiles(new Map());
+      setVideoFiles(new Map());
+    } else {
+      setError(result.message || 'An unknown error occurred.');
+      toast({ title: 'Error updating content', description: result.message, variant: 'destructive' });
+    }
+    
+    setIsSubmitting(false);
   };
 
   return (
-    <form action={enhancedFormAction}>
+    <form onSubmit={handleSubmit}>
         {isBrowser ? (
           <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="galleryItems">
@@ -269,9 +266,13 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
           </DragDropContext>
         ) : null}
 
-        {state?.errors?._form && <Alert variant="destructive" className="mt-4"><AlertTitle>Save Error</AlertTitle><AlertDescription>{state.errors._form}</AlertDescription></Alert>}
+        {error && <Alert variant="destructive" className="mt-4"><AlertTitle>Save Error</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
+        
         <Button type="button" variant="outline" onClick={addItem} className="mt-6 w-full"><Plus className="h-4 w-4 mr-2" /> Add New Media Item</Button>
-        <SubmitButton />
+        
+        <Button type="submit" disabled={isSubmitting} className="w-full mt-6">
+          {isSubmitting ? <Loader2 className="animate-spin" /> : 'Save All Changes'}
+        </Button>
     </form>
   )
 }
