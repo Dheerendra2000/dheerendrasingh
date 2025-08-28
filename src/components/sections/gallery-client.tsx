@@ -60,7 +60,7 @@ export default function GalleryClient({ content }: { content: GalleryContent }) 
     : content.items.filter(item => item.category === activeFilter);
 
   return (
-    <section id="gallery" className="py-20 bg-background">
+    <section id="gallery" className="py-20 bg-transparent">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-primary">Gallery</h2>
@@ -83,7 +83,7 @@ export default function GalleryClient({ content }: { content: GalleryContent }) 
             <Card 
               key={item.id} 
               className={cn(
-                "overflow-hidden group shadow-lg",
+                "overflow-hidden group shadow-lg !bg-transparent",
                 item.size === 'large' ? 'sm:col-span-2 lg:col-span-2' : ''
               )}
             >

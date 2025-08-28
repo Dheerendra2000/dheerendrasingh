@@ -17,9 +17,9 @@ export default async function TestimonialsSection() {
 
   if (error) {
     return (
-      <section id="testimonials" className="py-20 bg-secondary">
+      <section id="testimonials" className="py-20 bg-transparent">
         <div className="container mx-auto px-4">
-           <Alert variant="destructive">
+           <Alert variant="destructive" className="glassmorphism">
             <Terminal className="h-4 w-4" />
             <AlertTitle>Action Required: Configuration Error</AlertTitle>
             <AlertDescription>
@@ -35,7 +35,7 @@ export default async function TestimonialsSection() {
   }
 
   return (
-    <section id="testimonials" className="py-20 bg-secondary">
+    <section id="testimonials" className="py-20 bg-transparent">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-primary">What My Audience Says</h2>

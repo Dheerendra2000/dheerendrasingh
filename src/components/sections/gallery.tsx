@@ -8,9 +8,9 @@ export default async function GallerySection() {
 
   if (content.error) {
     return (
-      <section id="gallery" className="py-20 bg-background">
+      <section id="gallery" className="py-20 bg-transparent">
         <div className="container mx-auto px-4">
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="glassmorphism">
             <Terminal className="h-4 w-4" />
             <AlertTitle>Action Required: Configuration Error</AlertTitle>
             <AlertDescription>

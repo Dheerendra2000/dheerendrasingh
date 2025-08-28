@@ -4,7 +4,7 @@ import { Button } from "../ui/button"
 
 export default function Footer() {
   return (
-    <footer className="bg-secondary text-secondary-foreground py-8">
+    <footer className="bg-transparent text-secondary-foreground py-8">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0 text-center md:text-left">

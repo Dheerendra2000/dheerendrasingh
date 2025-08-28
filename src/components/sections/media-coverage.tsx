@@ -14,5 +14,9 @@ export default async function MediaCoverageSection() {
     return null; // Don't render if there are no items
   }
   
-  return <MediaCoverageClient items={items} />
+  return (
+    <section id="media-coverage" className="py-20 bg-transparent">
+        <MediaCoverageClient items={items} />
+    </section>
+  )
 }

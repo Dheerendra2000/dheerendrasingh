@@ -11,9 +11,9 @@ import MediaCoverageSection from '@/components/sections/media-coverage'
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen">
       <Header />
-      <main>
+      <main className="flex-grow">
         <HeroSection />
         <AboutSection />
         <AchievementsSection />

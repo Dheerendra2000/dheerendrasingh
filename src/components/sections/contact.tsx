@@ -8,9 +8,9 @@ export default async function ContactSection() {
 
     if (content.error) {
     return (
-      <section id="contact" className="py-20 bg-secondary">
+      <section id="contact" className="py-20 bg-transparent">
         <div className="container mx-auto px-4">
-           <Alert variant="destructive">
+           <Alert variant="destructive" className="glassmorphism">
             <Terminal className="h-4 w-4" />
             <AlertTitle>Action Required: Configuration Error</AlertTitle>
             <AlertDescription>

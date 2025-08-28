@@ -21,7 +21,7 @@ export default function MediaClient({ content }: { content: MediaContent }) {
 
 
   return (
-    <section id="media-hub" className="py-20 bg-background">
+    <section id="media-hub" className="py-20 bg-transparent">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-primary">Media Hub</h1>
@@ -62,7 +62,7 @@ export default function MediaClient({ content }: { content: MediaContent }) {
                     <blockquote className="italic text-sm">"{item.quote}"</blockquote>
                   </div>
               </CardContent>
-              <CardFooter className="p-6 pt-0 flex justify-between items-center bg-secondary/30">
+              <CardFooter className="p-6 pt-0 flex justify-between items-center bg-card/80">
                  <div className="flex items-center gap-3">
                     <Image src={item.outletLogoUrl} alt={`${item.outletName} logo`} width={80} height={20} className="object-contain h-5 w-auto" />
                  </div>

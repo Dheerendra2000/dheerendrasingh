@@ -10,12 +10,12 @@ export default async function MediaPage() {
 
     if (content.error) {
       return (
-        <div className="flex flex-col min-h-screen bg-background">
+        <div className="flex flex-col min-h-screen">
           <Header />
           <main className="flex-grow">
-            <section id="media-hub" className="py-20 bg-background">
+            <section id="media-hub" className="py-20 bg-transparent">
                 <div className="container mx-auto px-4">
-                <Alert variant="destructive">
+                <Alert variant="destructive" className="glassmorphism">
                     <Terminal className="h-4 w-4" />
                     <AlertTitle>Action Required: Configuration Error</AlertTitle>
                     <AlertDescription>
@@ -34,7 +34,7 @@ export default async function MediaPage() {
     }
 
     return (
-        <div className="flex flex-col min-h-screen bg-background">
+        <div className="flex flex-col min-h-screen">
             <Header />
             <main className="flex-grow">
                 <MediaClient content={content} />

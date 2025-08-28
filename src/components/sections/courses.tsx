@@ -11,9 +11,9 @@ export default async function CoursesSection() {
 
   if (error) {
     return (
-      <section id="courses" className="py-20 bg-background">
+      <section id="courses" className="py-20 bg-transparent">
         <div className="container mx-auto px-4">
-           <Alert variant="destructive">
+           <Alert variant="destructive" className="glassmorphism">
             <Terminal className="h-4 w-4" />
             <AlertTitle>Action Required: Configuration Error</AlertTitle>
             <AlertDescription>
@@ -29,7 +29,7 @@ export default async function CoursesSection() {
   }
 
   return (
-    <section id="courses" className="py-20 bg-background">
+    <section id="courses" className="py-20 bg-transparent">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-primary">My Courses</h2>

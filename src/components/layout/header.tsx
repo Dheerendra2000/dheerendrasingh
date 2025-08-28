@@ -7,6 +7,7 @@ import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { ThemeToggle } from "./theme-toggle"
+import { cn } from "@/lib/utils"
 
 const navLinks = [
   { name: "Home", href: "/" },
@@ -27,6 +28,7 @@ export default function Header() {
       setIsScrolled(window.scrollY > 10)
     }
     window.addEventListener("scroll", handleScroll)
+    handleScroll() // set initial state
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
@@ -34,11 +36,10 @@ export default function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? "bg-background/80 backdrop-blur-sm shadow-md"
-          : "bg-transparent"
-      }`}
+      className={cn(
+        "sticky top-0 z-50 transition-all duration-300",
+        isScrolled ? "glassmorphism shadow-lg" : "border-b border-transparent"
+      )}
     >
       <div className="container mx-auto px-4">
         <div className="flex h-20 items-center justify-between">
@@ -79,7 +80,7 @@ export default function Header() {
                   <span className="sr-only">Open menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-full bg-background">
+              <SheetContent side="right" className="w-full bg-background/95 backdrop-blur-lg">
                 <div className="flex justify-between items-center p-4 border-b">
                    <Link href="/" onClick={closeMenu}>
                     <span className="text-xl font-bold font-headline text-primary">

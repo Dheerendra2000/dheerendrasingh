@@ -24,12 +24,15 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <ThemeProvider
             attribute="class"
-            defaultTheme="system"
+            defaultTheme="dark"
             enableSystem
             disableTransitionOnChange
         >
-          {children}
-          <Toaster />
+          <div className="aurora-bg" />
+          <div className="relative z-10">
+            {children}
+            <Toaster />
+          </div>
         </ThemeProvider>
       </body>
     </html>
