@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -8,20 +9,31 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { ThemeToggle } from "./theme-toggle"
 import { cn } from "@/lib/utils"
+import { useScrollSpy } from "@/hooks/use-scrollspy"
+import { usePathname } from "next/navigation"
 
 const navLinks = [
-  { name: "Home", href: "/" },
-  { name: "About", href: "/#about" },
-  { name: "Achievements", href: "/#achievements" },
-  { name: "Gallery", href: "/#gallery" },
-  { name: "Media", href: "/media" },
-  { name: "Testimonials", href: "/#testimonials" },
-  { name: "Courses", href: "/#courses" },
+  { name: "Home", href: "/#home", id: "home" },
+  { name: "About", href: "/#about", id: "about" },
+  { name: "Achievements", href: "/#achievements", id: "achievements" },
+  { name: "Gallery", href: "/#gallery", id: "gallery" },
+  { name: "Media", href: "/media", id: "media-hub" },
+  { name: "Testimonials", href: "/#testimonials", id: "testimonials" },
+  { name: "Courses", href: "/#courses", id: "courses" },
 ]
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = React.useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
+
+  const pathname = usePathname();
+  const isHomePage = pathname === '/';
+
+  const activeId = useScrollSpy(navLinks.map(l => l.id), {
+    rootMargin: '0% 0% -80% 0%',
+    enabled: isHomePage,
+  });
+
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -33,6 +45,13 @@ export default function Header() {
   }, [])
 
   const closeMenu = () => setMobileMenuOpen(false)
+
+  const isLinkActive = (linkId: string) => {
+    if (pathname !== '/') {
+        return pathname.includes(linkId);
+    }
+    return activeId === linkId;
+  };
 
   return (
     <header
@@ -56,7 +75,10 @@ export default function Header() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="text-foreground/80 hover:text-primary transition-colors font-medium"
+                  className={cn(
+                      "font-medium transition-colors",
+                      isLinkActive(link.id) ? "text-primary font-bold" : "text-foreground/80 hover:text-primary"
+                  )}
                 >
                   {link.name}
                 </Link>
@@ -98,7 +120,10 @@ export default function Header() {
                       key={link.href}
                       href={link.href}
                       onClick={closeMenu}
-                      className="text-lg text-foreground/80 hover:text-primary transition-colors"
+                      className={cn(
+                        "text-lg transition-colors",
+                         isLinkActive(link.id) ? "text-primary font-bold" : "text-foreground/80 hover:text-primary"
+                      )}
                     >
                       {link.name}
                     </Link>
