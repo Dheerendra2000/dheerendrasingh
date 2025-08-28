@@ -42,17 +42,19 @@ export default async function HeroSection() {
     <section id="home" className="py-12 md:py-20 bg-transparent">
       <div className="container mx-auto px-4">
         <div className="relative aspect-video rounded-lg overflow-hidden shadow-2xl group glassmorphism">
-            <video
-                key={content.videoUrl}
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="absolute top-0 left-0 w-full h-full object-cover z-0 opacity-20"
-            >
-                <source src={content.videoUrl} type="video/mp4" />
-                Your browser does not support the video tag.
-            </video>
+            {content.videoUrl && (
+              <video
+                  key={content.videoUrl}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="absolute top-0 left-0 w-full h-full object-cover z-0 opacity-20"
+              >
+                  <source src={content.videoUrl} type="video/mp4" />
+                  Your browser does not support the video tag.
+              </video>
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10" />
             
             <div className="relative z-20 h-full flex flex-col items-center justify-center text-center text-white p-4">
