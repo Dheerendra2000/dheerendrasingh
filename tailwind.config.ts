@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -86,11 +87,21 @@ export default {
             transform: 'rotate(360deg)',
           },
         },
+        shimmer: {
+          '0%, 100%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
+        },
+        'pulse-glow': {
+          '0%, 100%': { boxShadow: '0 0 5px -2px hsl(var(--accent))' },
+          '50%': { boxShadow: '0 0 10px 0px hsl(var(--accent) / 0.75)' },
+        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'aurora-spin': 'aurora-spin 20s linear infinite',
+        'shimmer': 'shimmer 3s ease-in-out infinite',
+        'pulse-glow': 'pulse-glow 2.5s ease-in-out infinite',
       },
     },
   },
