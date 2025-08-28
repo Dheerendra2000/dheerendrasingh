@@ -21,9 +21,6 @@ const galleryContentSchema = z.object({
   filters: z.array(z.string()),
 });
 
-// We need a custom refinement that can access the form data to check for files
-// so we can't do it at the individual item level easily. We'll check it inside the action.
-
 export async function updateGalleryContent(prevState: any, formData: FormData) {
   const bucketName = process.env.FIREBASE_STORAGE_BUCKET;
 
@@ -47,29 +44,28 @@ export async function updateGalleryContent(prevState: any, formData: FormData) {
      return { success: false, message: 'Invalid data format.', errors: { _form: 'Gallery data is not valid JSON.' } };
   }
   
-  // Custom validation check before Zod parse
+  // Custom validation check for required files before Zod parse
   for (let i = 0; i < parsedData.items.length; i++) {
     const item = parsedData.items[i];
-    const file = formData.get(`src-file-${item.id}`) as File | null;
+    const posterFile = formData.get(`src-file-${item.id}`) as File | null;
     
-    // An image item is invalid if it has no existing `src` URL AND no new file is being uploaded.
-    if (item.type === 'image' && !item.src && (!file || file.size === 0)) {
-        const errorMessage = `Error in Item #${i + 1}: Image is required. Please upload a file or provide a URL.`;
+    if (item.type === 'image' && !item.src && (!posterFile || posterFile.size === 0)) {
+        const errorMessage = `Error in Item #${i + 1}: An image is required. Please upload a file or provide a URL.`;
         return { success: false, message: errorMessage, errors: { _form: errorMessage }};
     }
-     // A video item is invalid if it has no existing videoSrc AND no existing poster/src URL unless a new file is uploaded
+     
     if (item.type === 'video') {
-       if (!item.videoSrc || item.videoSrc.trim() === '') {
-           const errorMessage = `Error in Item #${i + 1}: A valid Video URL is required for video items.`;
+       const videoFile = formData.get(`video-file-${item.id}`) as File | null;
+       if (!item.videoSrc && (!videoFile || videoFile.size === 0)) {
+           const errorMessage = `Error in Item #${i + 1}: A video file is required. Please upload one.`;
            return { success: false, message: errorMessage, errors: { _form: errorMessage }};
        }
-       if (!item.src && (!file || file.size === 0)) {
-           const errorMessage = `Error in Item #${i + 1}: A video poster image is required. Please upload a file.`;
+       if (!item.src && (!posterFile || posterFile.size === 0)) {
+           const errorMessage = `Error in Item #${i + 1}: A video poster image is required. Please upload a file for the "Video Poster".`;
            return { success: false, message: errorMessage, errors: { _form: errorMessage }};
        }
     }
   }
-
 
   const result = galleryContentSchema.safeParse(parsedData);
 
@@ -93,27 +89,30 @@ export async function updateGalleryContent(prevState: any, formData: FormData) {
   }
 
   try {
-    const bucket = storage.bucket(bucketName); // Explicitly specify the bucket name here
-    const itemsWithUploadedUrls = await Promise.all(result.data.items.map(async (item, index) => {
-      const file = formData.get(`src-file-${item.id}`) as File | null;
+    const bucket = storage.bucket(bucketName);
+    const itemsWithUploadedUrls = await Promise.all(result.data.items.map(async (item) => {
       let newItem = { ...item };
+      const posterFile = formData.get(`src-file-${item.id}`) as File | null;
+      const videoFile = formData.get(`video-file-${item.id}`) as File | null;
 
-      if (file && file.size > 0) {
-        const fileBuffer = Buffer.from(await file.arrayBuffer());
-        const filename = `gallery/${item.id}-${Date.now()}-${file.name}`;
+      // Handle poster/image upload
+      if (posterFile && posterFile.size > 0) {
+        const fileBuffer = Buffer.from(await posterFile.arrayBuffer());
+        const filename = `gallery/images/${item.id}-${Date.now()}-${posterFile.name}`;
         const fileUpload = bucket.file(filename);
-
-        await fileUpload.save(fileBuffer, {
-          metadata: { contentType: file.type },
-        });
-        
-        // Get the public URL
-        const [url] = await fileUpload.getSignedUrl({
-            action: 'read',
-            expires: '03-09-2491' // Far-future expiration date
-        });
-
+        await fileUpload.save(fileBuffer, { metadata: { contentType: posterFile.type } });
+        const [url] = await fileUpload.getSignedUrl({ action: 'read', expires: '03-09-2491' });
         newItem.src = url;
+      }
+      
+      // Handle video upload if item type is video
+      if (newItem.type === 'video' && videoFile && videoFile.size > 0) {
+         const fileBuffer = Buffer.from(await videoFile.arrayBuffer());
+         const filename = `gallery/videos/${item.id}-${Date.now()}-${videoFile.name}`;
+         const fileUpload = bucket.file(filename);
+         await fileUpload.save(fileBuffer, { metadata: { contentType: videoFile.type } });
+         const [url] = await fileUpload.getSignedUrl({ action: 'read', expires: '03-09-2491' });
+         newItem.videoSrc = url;
       }
       
       // Clear videoSrc for image types for cleaner data

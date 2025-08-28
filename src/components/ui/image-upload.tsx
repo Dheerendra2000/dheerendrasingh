@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UploadCloud, X } from 'lucide-react';
+import { UploadCloud, X, Video } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ImageUploadProps {
@@ -14,12 +14,21 @@ interface ImageUploadProps {
   name: string;
   initialValue?: string;
   onFileSelect: (file: File | null) => void;
+  accept?: string;
 }
 
-export default function ImageUpload({ id, name, initialValue = '', onFileSelect }: ImageUploadProps) {
+export default function ImageUpload({ 
+  id, 
+  name, 
+  initialValue = '', 
+  onFileSelect,
+  accept = "image/*" 
+}: ImageUploadProps) {
   const [preview, setPreview] = useState<string | null>(initialValue);
   const [fileName, setFileName] = useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const isVideo = accept.includes('video');
 
   useEffect(() => {
     setPreview(initialValue);
@@ -34,7 +43,7 @@ export default function ImageUpload({ id, name, initialValue = '', onFileSelect 
     }
   };
 
-  const handleRemoveImage = () => {
+  const handleRemove = () => {
     setPreview(null);
     setFileName(null);
     onFileSelect(null);
@@ -47,6 +56,33 @@ export default function ImageUpload({ id, name, initialValue = '', onFileSelect 
     fileInputRef.current?.click();
   };
 
+  const renderPreview = () => {
+    if (!preview) return null;
+
+    if (isVideo) {
+      return (
+        <video 
+          key={preview} // Use key to force re-render when src changes
+          controls 
+          className="max-h-[150px] w-auto rounded-md object-contain"
+        >
+          <source src={preview} />
+          Your browser does not support the video tag.
+        </video>
+      );
+    }
+    
+    return (
+      <Image 
+        src={preview} 
+        alt="Image preview" 
+        width={200}
+        height={150}
+        className="max-h-[150px] w-auto rounded-md object-contain" 
+      />
+    );
+  };
+
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{name}</Label>
@@ -56,19 +92,13 @@ export default function ImageUpload({ id, name, initialValue = '', onFileSelect 
       )}>
         {preview ? (
           <>
-            <Image 
-              src={preview} 
-              alt="Image preview" 
-              width={200}
-              height={150}
-              className="max-h-[150px] w-auto rounded-md object-contain" 
-            />
+            {renderPreview()}
             {fileName && <p className="text-xs text-muted-foreground mt-2">{fileName}</p>}
             <Button
               type="button"
               variant="destructive"
               size="icon"
-              onClick={handleRemoveImage}
+              onClick={handleRemove}
               className="absolute top-2 right-2 h-7 w-7"
               aria-label="Remove image"
             >
@@ -77,13 +107,19 @@ export default function ImageUpload({ id, name, initialValue = '', onFileSelect 
           </>
         ) : (
           <div className="text-center">
-            <UploadCloud className="mx-auto h-10 w-10 text-muted-foreground" />
+            {isVideo ? (
+                <Video className="mx-auto h-10 w-10 text-muted-foreground" />
+            ) : (
+                <UploadCloud className="mx-auto h-10 w-10 text-muted-foreground" />
+            )}
             <p className="mt-2 text-sm text-muted-foreground">
               <Button type="button" variant="link" onClick={handleButtonClick} className="p-0 h-auto">
                 Click to upload
               </Button> or drag and drop.
             </p>
-            <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 10MB</p>
+            <p className="text-xs text-muted-foreground">
+              {accept === 'image/*' ? 'PNG, JPG, GIF' : accept.toUpperCase().replace(/,/g, ', ')}
+            </p>
           </div>
         )}
         <Input
@@ -92,7 +128,7 @@ export default function ImageUpload({ id, name, initialValue = '', onFileSelect 
           ref={fileInputRef}
           onChange={handleFileChange}
           className="sr-only"
-          accept="image/png, image/jpeg, image/gif"
+          accept={accept}
         />
       </div>
     </div>

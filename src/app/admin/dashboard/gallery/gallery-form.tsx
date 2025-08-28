@@ -105,7 +105,8 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
   const [state, formAction] = useActionState(updateGalleryContent, null)
   const { toast } = useToast()
   const [items, setItems] = useState<GalleryItem[]>(content.items)
-  const [files, setFiles] = useState<Map<string, File | null>>(new Map());
+  const [posterFiles, setPosterFiles] = useState<Map<string, File | null>>(new Map());
+  const [videoFiles, setVideoFiles] = useState<Map<string, File | null>>(new Map());
   const [isBrowser, setIsBrowser] = useState(false);
 
   const existingCategories = [...new Set(items.map((item) => item.category?.trim()).filter(Boolean))].sort();
@@ -118,8 +119,8 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
     if (!state) return;
     if (state.success) {
       toast({ title: 'Success!', description: state.message });
-      // Clear files after successful submission
-      setFiles(new Map());
+      setPosterFiles(new Map());
+      setVideoFiles(new Map());
     } else if (state.message) {
        toast({ title: 'Error updating content', description: state.message, variant: 'destructive' });
     }
@@ -134,8 +135,12 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
     }))
   }
 
-  const handleFileSelect = (id: string, file: File | null) => {
-    setFiles(prev => new Map(prev).set(id, file));
+  const handlePosterFileSelect = (id: string, file: File | null) => {
+    setPosterFiles(prev => new Map(prev).set(id, file));
+  };
+  
+  const handleVideoFileSelect = (id: string, file: File | null) => {
+    setVideoFiles(prev => new Map(prev).set(id, file));
   };
 
   const addItem = () => {
@@ -147,7 +152,12 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
 
   const removeItem = (id: string) => {
     setItems(prev => prev.filter(item => item.id !== id))
-    setFiles(prev => {
+    setPosterFiles(prev => {
+        const newFiles = new Map(prev);
+        newFiles.delete(id);
+        return newFiles;
+    });
+     setVideoFiles(prev => {
         const newFiles = new Map(prev);
         newFiles.delete(id);
         return newFiles;
@@ -165,10 +175,11 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
 
   const enhancedFormAction = (formData: FormData) => {
     formData.set('gallery', JSON.stringify(items));
-    files.forEach((file, id) => {
-      if (file) {
-        formData.set(`src-file-${id}`, file);
-      }
+    posterFiles.forEach((file, id) => {
+      if (file) formData.set(`src-file-${id}`, file);
+    });
+    videoFiles.forEach((file, id) => {
+        if (file) formData.set(`video-file-${id}`, file);
     });
     formAction(formData);
   };
@@ -216,14 +227,18 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
                                     id={`src-file-${item.id}`}
                                     name={item.type === 'video' ? 'Video Poster' : 'Image'}
                                     initialValue={item.src}
-                                    onFileSelect={(file) => handleFileSelect(item.id, file)}
+                                    onFileSelect={(file) => handlePosterFileSelect(item.id, file)}
+                                    accept="image/png, image/jpeg, image/gif"
                                   />
 
                                   {item.type === 'video' && (
-                                    <div className="space-y-2">
-                                      <Label htmlFor={`videoSrc-${item.id}`}>Video URL (e.g. from Pexels)</Label>
-                                      <Input id={`videoSrc-${item.id}`} type="url" value={item.videoSrc || ''} onChange={(e) => handleInputChange(item.id, 'videoSrc', e.target.value)} placeholder="https://videos.pexels.com/video.mp4" />
-                                    </div>
+                                    <ImageUpload
+                                        id={`video-file-${item.id}`}
+                                        name="Video File"
+                                        initialValue={item.videoSrc}
+                                        onFileSelect={(file) => handleVideoFileSelect(item.id, file)}
+                                        accept="video/mp4, video/webm"
+                                     />
                                   )}
                                   
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
