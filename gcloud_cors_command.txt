@@ -17,7 +17,7 @@
 gsutil cors set - <<EOF
 [
     {
-      "origin": ["https://www.dheerendrasingh.com/", "https://www.dheerendrasingh.com", "https://*.firebase.studio", "https://*.cloudworkstations.dev", "http://localhost:9002"],
+      "origin": ["https://www.dheerendrasingh.com/", "https://www.dheerendrasingh.com", "https://dheerendrasingh.vercel.app", "https://*.firebase.studio", "https://*.cloudworkstations.dev", "http://localhost:9002"],
       "method": ["PUT", "GET", "HEAD"],
       "responseHeader": ["Content-Type", "Content-Length"],
       "maxAgeSeconds": 3600
