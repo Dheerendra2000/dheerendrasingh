@@ -106,8 +106,8 @@ export async function updateGalleryContent(formData: FormData): Promise<ReturnVa
         const filename = `gallery/images/${item.id}-${Date.now()}-${posterFile.name}`;
         const fileUpload = bucket.file(filename);
         await fileUpload.save(fileBuffer, { metadata: { contentType: posterFile.type } });
-        const [url] = await fileUpload.getSignedUrl({ action: 'read', expires: '03-09-2491' });
-        newItem.src = url;
+        await fileUpload.makePublic();
+        newItem.src = fileUpload.publicUrl();
       }
       
       // Handle video upload if item type is video
@@ -116,8 +116,8 @@ export async function updateGalleryContent(formData: FormData): Promise<ReturnVa
          const filename = `gallery/videos/${item.id}-${Date.now()}-${videoFile.name}`;
          const fileUpload = bucket.file(filename);
          await fileUpload.save(fileBuffer, { metadata: { contentType: videoFile.type } });
-         const [url] = await fileUpload.getSignedUrl({ action: 'read', expires: '03-09-2491' });
-         newItem.videoSrc = url;
+         await fileUpload.makePublic();
+         newItem.videoSrc = fileUpload.publicUrl();
       }
       
       // Clear videoSrc for image types for cleaner data
