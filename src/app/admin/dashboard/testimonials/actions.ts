@@ -1,8 +1,9 @@
+
 'use server'
 
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
-import { db, initError } from '@/lib/firebase-admin'
+import { db, storage, initError } from '@/lib/firebase-admin'
 
 const testimonialSchema = z.object({
   id: z.string(),
@@ -23,11 +24,11 @@ type ReturnValue = {
 }
 
 export async function updateTestimonialsContent(formData: FormData): Promise<ReturnValue> {
-  if (initError || !db) {
-    return { 
-        success: false,
-        message: `Failed to save: ${initError || "Database not initialized."}`,
-    }
+  const bucketName = process.env.FIREBASE_STORAGE_BUCKET;
+
+  if (initError || !db || !storage || !bucketName) {
+    const errorMessage = initError || "Database/Storage not initialized or Bucket Name missing.";
+    return { success: false, message: `Failed to save: ${errorMessage}` };
   }
 
   const testimonialsJson = formData.get('testimonials');
@@ -46,6 +47,15 @@ export async function updateTestimonialsContent(formData: FormData): Promise<Ret
      return { 
         success: false,
         message: 'Invalid data format. Testimonials data is not valid JSON.',
+    }
+  }
+  
+  for (let i = 0; i < parsedData.testimonials.length; i++) {
+    const item = parsedData.testimonials[i];
+    const imageFile = formData.get(`image-file-${item.id}`) as File | null;
+    if (!item.image && (!imageFile || imageFile.size === 0)) {
+        const errorMessage = `Error in Item #${i + 1}: An image is required. Please upload a file.`;
+        return { success: false, message: errorMessage};
     }
   }
 
@@ -75,15 +85,35 @@ export async function updateTestimonialsContent(formData: FormData): Promise<Ret
   }
 
   try {
-    await db.collection('content').doc('testimonials').set(result.data, { merge: true });
-    revalidatePath('/'); // Revalidate the home page
-    revalidatePath('/admin/dashboard/testimonials'); // Revalidate this page
+    const bucket = storage.bucket(bucketName);
+    const testimonialsWithUrls = await Promise.all(result.data.testimonials.map(async (item) => {
+        let newItem = { ...item };
+        const imageFile = formData.get(`image-file-${item.id}`) as File | null;
+
+        if (imageFile && imageFile.size > 0) {
+            const fileBuffer = Buffer.from(await imageFile.arrayBuffer());
+            const filename = `testimonials/${item.id}-${Date.now()}-${imageFile.name}`;
+            const fileUpload = bucket.file(filename);
+            await fileUpload.save(fileBuffer, { metadata: { contentType: imageFile.type } });
+            await fileUpload.makePublic();
+            newItem.image = fileUpload.publicUrl();
+        }
+        return newItem;
+    }));
+
+    const finalData = {
+        testimonials: testimonialsWithUrls
+    };
+
+    await db.collection('content').doc('testimonials').set(finalData, { merge: true });
+    revalidatePath('/');
+    revalidatePath('/admin/dashboard/testimonials');
     return { 
         success: true,
         message: 'Testimonials updated successfully!',
     }
   } catch (e: any) {
-    console.error('Failed to write testimonials content to Firestore:', e)
+    console.error('Failed to write testimonials content to Firestore or upload file:', e)
      let userFriendlyMessage = 'Failed to save content. A server error occurred.';
      if (e.code === 7) { // PERMISSION_DENIED
           userFriendlyMessage = `Save failed: Permission Denied. This is likely a temporary issue. Please wait a moment and try again.`;

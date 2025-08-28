@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState } from 'react'
@@ -11,10 +12,12 @@ import type { TestimonialsContent, Testimonial } from '@/lib/contentDefaults'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Plus, Trash2, Loader2 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import ImageUpload from '@/components/ui/image-upload'
 
 export default function TestimonialsForm({ content }: { content: TestimonialsContent }) {
   const { toast } = useToast()
   const [testimonials, setTestimonials] = useState<Testimonial[]>(content.testimonials)
+  const [imageFiles, setImageFiles] = useState<Map<string, File | null>>(new Map());
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -24,15 +27,24 @@ export default function TestimonialsForm({ content }: { content: TestimonialsCon
     )
   }
 
+  const handleFileSelect = (id: string, file: File | null) => {
+    setImageFiles(prev => new Map(prev).set(id, file));
+  };
+
   const addTestimonial = () => {
     setTestimonials(prev => [
       ...prev,
-      { id: crypto.randomUUID(), name: '', title: '', quote: '', image: '', hint: '' }
+      { id: Date.now().toString(), name: '', title: '', quote: '', image: '', hint: '' }
     ])
   }
 
   const removeTestimonial = (id: string) => {
     setTestimonials(prev => prev.filter(item => item.id !== id))
+    setImageFiles(prev => {
+      const newFiles = new Map(prev);
+      newFiles.delete(id);
+      return newFiles;
+    });
   }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -42,6 +54,9 @@ export default function TestimonialsForm({ content }: { content: TestimonialsCon
     
     const formData = new FormData()
     formData.append('testimonials', JSON.stringify(testimonials))
+    imageFiles.forEach((file, id) => {
+        if (file) formData.set(`image-file-${id}`, file);
+    });
 
     const result = await updateTestimonialsContent(formData)
 
@@ -50,6 +65,7 @@ export default function TestimonialsForm({ content }: { content: TestimonialsCon
         title: 'Success!',
         description: result.message,
       })
+      setImageFiles(new Map());
     } else {
       setError(result.message || 'An unknown error occurred.')
       toast({
@@ -112,17 +128,15 @@ export default function TestimonialsForm({ content }: { content: TestimonialsCon
                 </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <Label htmlFor={`image-${testimonial.id}`}>Image URL</Label>
-                        <Input 
-                            id={`image-${testimonial.id}`}
-                            type="url"
-                            value={testimonial.image}
-                            onChange={(e) => handleInputChange(testimonial.id, 'image', e.target.value)}
-                            placeholder="https://placehold.co/100x100.png"
-                        />
+                       <ImageUpload
+                            id={`image-file-${testimonial.id}`}
+                            name="Client Image"
+                            initialValue={testimonial.image}
+                            onFileSelect={(file) => handleFileSelect(testimonial.id, file)}
+                       />
                     </div>
                      <div className="space-y-2">
-                        <Label htmlFor={`hint-${testimonial.id}`}>AI Hint</Label>
+                        <Label htmlFor={`hint-${testimonial.id}`}>AI Hint (for image)</Label>
                         <Input 
                             id={`hint-${testimonial.id}`}
                             value={testimonial.hint}
