@@ -6,7 +6,7 @@ import { getGalleryContent } from '@/lib/data/gallery'
 import GalleryForm from './gallery-form'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
-export const maxDuration = 60; // Allow up to 60 seconds for video uploads
+export const maxDuration = 120; // Allow up to 120 seconds for video uploads
 
 export default async function ManageGalleryPage() {
   const content = await getGalleryContent();
