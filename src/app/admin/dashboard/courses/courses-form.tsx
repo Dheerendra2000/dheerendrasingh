@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState } from 'react'
@@ -11,10 +12,12 @@ import type { CoursesContent, Course } from '@/lib/contentDefaults'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Plus, Trash2, Loader2 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import ImageUpload from '@/components/ui/image-upload'
 
 export default function CoursesForm({ content }: { content: CoursesContent }) {
   const { toast } = useToast()
   const [courses, setCourses] = useState<Course[]>(content.courses)
+  const [thumbnailFiles, setThumbnailFiles] = useState<Map<string, File | null>>(new Map());
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -23,16 +26,25 @@ export default function CoursesForm({ content }: { content: CoursesContent }) {
       prev.map(item => item.id === id ? { ...item, [field]: value } : item)
     )
   }
+  
+  const handleFileSelect = (id: string, file: File | null) => {
+    setThumbnailFiles(prev => new Map(prev).set(id, file));
+  };
 
   const addCourse = () => {
     setCourses(prev => [
       ...prev,
-      { id: crypto.randomUUID(), title: '', description: '', thumbnail: '', hint: '', price: '', category: '', link: '#' }
+      { id: Date.now().toString(), title: '', description: '', thumbnail: '', hint: '', price: '', category: '', link: '#' }
     ])
   }
 
   const removeCourse = (id: string) => {
     setCourses(prev => prev.filter(item => item.id !== id))
+    setThumbnailFiles(prev => {
+      const newFiles = new Map(prev);
+      newFiles.delete(id);
+      return newFiles;
+    });
   }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -42,6 +54,10 @@ export default function CoursesForm({ content }: { content: CoursesContent }) {
     
     const formData = new FormData()
     formData.append('courses', JSON.stringify(courses))
+    thumbnailFiles.forEach((file, id) => {
+        if (file) formData.set(`thumbnail-file-${id}`, file);
+    });
+
 
     const result = await updateCoursesContent(formData)
 
@@ -50,6 +66,7 @@ export default function CoursesForm({ content }: { content: CoursesContent }) {
         title: 'Success!',
         description: result.message,
       })
+      setThumbnailFiles(new Map());
     } else {
       setError(result.message || 'An unknown error occurred.')
       toast({
@@ -101,13 +118,11 @@ export default function CoursesForm({ content }: { content: CoursesContent }) {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                      <Label htmlFor={`thumbnail-${course.id}`}>Thumbnail URL</Label>
-                      <Input 
-                          id={`thumbnail-${course.id}`}
-                          type="url"
-                          value={course.thumbnail}
-                          onChange={(e) => handleInputChange(course.id, 'thumbnail', e.target.value)}
-                          placeholder="https://placehold.co/600x400.png"
+                     <ImageUpload
+                          id={`thumbnail-file-${course.id}`}
+                          name="Course Thumbnail"
+                          initialValue={course.thumbnail}
+                          onFileSelect={(file) => handleFileSelect(course.id, file)}
                       />
                   </div>
                    <div className="space-y-2">
