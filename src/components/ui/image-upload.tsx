@@ -25,7 +25,7 @@ export default function ImageUpload({
   initialValue = '', 
   onFileSelect,
   accept = "image/*",
-  maxSizeMB = 500, // Default to a high value
+  maxSizeMB = 5,
 }: ImageUploadProps) {
   const { toast } = useToast();
   const [preview, setPreview] = useState<string | null>(initialValue);
@@ -38,6 +38,15 @@ export default function ImageUpload({
     setPreview(initialValue);
   }, [initialValue]);
 
+  const handleRemove = () => {
+    setPreview(null);
+    setFileName(null);
+    onFileSelect(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -47,8 +56,7 @@ export default function ImageUpload({
           description: `The selected file exceeds the ${maxSizeMB}MB limit.`,
           variant: 'destructive',
         });
-        // Clear the input value to allow re-selection of the same file if needed
-        if(fileInputRef.current) fileInputRef.current.value = "";
+        handleRemove(); // Reset the state completely
         return;
       }
 
@@ -58,14 +66,6 @@ export default function ImageUpload({
     }
   };
 
-  const handleRemove = () => {
-    setPreview(null);
-    setFileName(null);
-    onFileSelect(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
 
   const handleButtonClick = () => {
     fileInputRef.current?.click();
