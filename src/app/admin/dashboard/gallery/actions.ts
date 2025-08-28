@@ -55,14 +55,16 @@ export async function updateGalleryContent(formData: FormData): Promise<ReturnVa
     
     if (item.type === 'image') {
         const imageFile = formData.get(`src-file-${item.id}`) as File | null;
+        // Only require a file if the src isn't already set from a previous upload
         if (!item.src && (!imageFile || imageFile.size === 0)) {
-            const errorMessage = `Error in Item #${i + 1}: An image is required. Please upload a file or provide a URL.`;
+            const errorMessage = `Error in Item #${i + 1}: An image is required. Please upload a file.`;
             return { success: false, message: errorMessage};
         }
     }
      
     if (item.type === 'video') {
        const videoFile = formData.get(`video-file-${item.id}`) as File | null;
+       // Only require a file if the videoSrc isn't already set
        if (!item.videoSrc && (!videoFile || videoFile.size === 0)) {
            const errorMessage = `Error in Item #${i + 1}: A video file is required. Please upload one.`;
            return { success: false, message: errorMessage};
@@ -116,12 +118,6 @@ export async function updateGalleryContent(formData: FormData): Promise<ReturnVa
          await fileUpload.save(fileBuffer, { metadata: { contentType: videoFile.type } });
          await fileUpload.makePublic();
          newItem.videoSrc = fileUpload.publicUrl();
-         newItem.src = ''; // Clear src for video types as it's not needed
-      }
-      
-      // Clear videoSrc for image types for cleaner data
-      if (newItem.type === 'image') {
-        newItem.videoSrc = '';
       }
       
       return newItem;
