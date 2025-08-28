@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
@@ -5,6 +6,7 @@ import { ArrowLeft } from 'lucide-react'
 import HomeForm from './home-form'
 import { getHomeContent } from '@/lib/data/home'
 
+export const maxDuration = 300; // Allow up to 5 minutes for video uploads
 
 export default async function ManageHomePage() {
   const content = await getHomeContent();
