@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -9,7 +10,7 @@ import { cn } from "@/lib/utils"
 import { Volume2, VolumeX } from "lucide-react"
 
 // A custom video player component to handle autoplay with a mute/unmute button.
-const VideoPlayer = ({ src, poster, alt }: { src: string; poster?: string; alt: string }) => {
+const VideoPlayer = ({ src, alt }: { src: string; alt: string }) => {
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const [isMuted, setIsMuted] = React.useState(true);
 
@@ -27,7 +28,6 @@ const VideoPlayer = ({ src, poster, alt }: { src: string; poster?: string; alt: 
     <div className="relative w-full h-full group/video">
       <video
         ref={videoRef}
-        poster={poster}
         className="object-cover w-full h-full"
         aria-label={alt}
         autoPlay
@@ -91,7 +91,6 @@ export default function GalleryClient({ content }: { content: GalleryContent }) 
                   {item.type === 'video' && item.videoSrc ? (
                      <VideoPlayer
                         src={item.videoSrc}
-                        poster={item.src}
                         alt={item.alt}
                       />
                   ) : (

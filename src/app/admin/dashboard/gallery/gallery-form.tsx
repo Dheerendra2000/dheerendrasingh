@@ -111,6 +111,7 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
       if (item.id !== id) return item;
       const updatedItem = { ...item, [field]: value };
       if (field === 'type' && value === 'image') updatedItem.videoSrc = '';
+      if (field === 'type' && value === 'video') updatedItem.src = '';
       return updatedItem;
     }))
   }
@@ -220,13 +221,15 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
                                       </div>
                                   </div>
                                   
-                                  <ImageUpload
-                                    id={`src-file-${item.id}`}
-                                    name={item.type === 'video' ? 'Video Poster' : 'Image'}
-                                    initialValue={item.src}
-                                    onFileSelect={(file) => handlePosterFileSelect(item.id, file)}
-                                    accept="image/png, image/jpeg, image/gif"
-                                  />
+                                  {item.type === 'image' && (
+                                    <ImageUpload
+                                      id={`src-file-${item.id}`}
+                                      name='Image'
+                                      initialValue={item.src}
+                                      onFileSelect={(file) => handlePosterFileSelect(item.id, file)}
+                                      accept="image/png, image/jpeg, image/gif"
+                                    />
+                                  )}
 
                                   {item.type === 'video' && (
                                     <ImageUpload
@@ -244,7 +247,7 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
                                            <CategoryCombobox value={item.category || ''} onChange={(newValue) => handleInputChange(item.id, 'category', newValue)} categories={existingCategories} />
                                       </div>
                                       <div className="space-y-2">
-                                          <Label htmlFor={`hint-${item.id}`}>AI Hint (for poster)</Label>
+                                          <Label htmlFor={`hint-${item.id}`}>AI Hint (for image)</Label>
                                           <Input id={`hint-${item.id}`} value={item.hint || ''} onChange={(e) => handleInputChange(item.id, 'hint', e.target.value)} placeholder="e.g., conference stage" />
                                       </div>
                                   </div>
@@ -271,7 +274,7 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
         <Button type="button" variant="outline" onClick={addItem} className="mt-6 w-full"><Plus className="h-4 w-4 mr-2" /> Add New Media Item</Button>
         
         <Button type="submit" disabled={isSubmitting} className="w-full mt-6">
-          {isSubmitting ? <Loader2 className="animate-spin" /> : 'Save All Changes'}
+          {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save All Changes'}
         </Button>
     </form>
   )

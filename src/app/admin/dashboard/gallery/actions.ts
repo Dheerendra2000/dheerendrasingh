@@ -52,9 +52,9 @@ export async function updateGalleryContent(formData: FormData): Promise<ReturnVa
   // Custom validation check for required files before Zod parse
   for (let i = 0; i < parsedData.items.length; i++) {
     const item = parsedData.items[i];
-    const posterFile = formData.get(`src-file-${item.id}`) as File | null;
+    const imageFile = formData.get(`src-file-${item.id}`) as File | null;
     
-    if (item.type === 'image' && !item.src && (!posterFile || posterFile.size === 0)) {
+    if (item.type === 'image' && !item.src && (!imageFile || imageFile.size === 0)) {
         const errorMessage = `Error in Item #${i + 1}: An image is required. Please upload a file or provide a URL.`;
         return { success: false, message: errorMessage};
     }
@@ -63,10 +63,6 @@ export async function updateGalleryContent(formData: FormData): Promise<ReturnVa
        const videoFile = formData.get(`video-file-${item.id}`) as File | null;
        if (!item.videoSrc && (!videoFile || videoFile.size === 0)) {
            const errorMessage = `Error in Item #${i + 1}: A video file is required. Please upload one.`;
-           return { success: false, message: errorMessage};
-       }
-       if (!item.src && (!posterFile || posterFile.size === 0)) {
-           const errorMessage = `Error in Item #${i + 1}: A video poster image is required. Please upload a file for the "Video Poster".`;
            return { success: false, message: errorMessage};
        }
     }
@@ -97,15 +93,15 @@ export async function updateGalleryContent(formData: FormData): Promise<ReturnVa
     const bucket = storage.bucket(bucketName);
     const itemsWithUploadedUrls = await Promise.all(result.data.items.map(async (item) => {
       let newItem = { ...item };
-      const posterFile = formData.get(`src-file-${item.id}`) as File | null;
+      const imageFile = formData.get(`src-file-${item.id}`) as File | null;
       const videoFile = formData.get(`video-file-${item.id}`) as File | null;
 
-      // Handle poster/image upload
-      if (posterFile && posterFile.size > 0) {
-        const fileBuffer = Buffer.from(await posterFile.arrayBuffer());
-        const filename = `gallery/images/${item.id}-${Date.now()}-${posterFile.name}`;
+      // Handle image upload
+      if (newItem.type === 'image' && imageFile && imageFile.size > 0) {
+        const fileBuffer = Buffer.from(await imageFile.arrayBuffer());
+        const filename = `gallery/images/${item.id}-${Date.now()}-${imageFile.name}`;
         const fileUpload = bucket.file(filename);
-        await fileUpload.save(fileBuffer, { metadata: { contentType: posterFile.type } });
+        await fileUpload.save(fileBuffer, { metadata: { contentType: imageFile.type } });
         await fileUpload.makePublic();
         newItem.src = fileUpload.publicUrl();
       }
@@ -118,6 +114,7 @@ export async function updateGalleryContent(formData: FormData): Promise<ReturnVa
          await fileUpload.save(fileBuffer, { metadata: { contentType: videoFile.type } });
          await fileUpload.makePublic();
          newItem.videoSrc = fileUpload.publicUrl();
+         newItem.src = ''; // Clear src for video types as it's not needed
       }
       
       // Clear videoSrc for image types for cleaner data
