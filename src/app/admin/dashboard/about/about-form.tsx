@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -9,6 +10,7 @@ import { useToast } from '@/hooks/use-toast'
 import { updateAboutContent } from './actions'
 import { Loader2 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import ImageUpload from '@/components/ui/image-upload'
 
 type AboutContent = {
   imageUrl: string;
@@ -24,6 +26,7 @@ export default function AboutForm({ content }: { content: AboutContent }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [formErrors, setFormErrors] = useState<Record<string, string[]>>({})
+  const [imageFile, setImageFile] = useState<File | null>(null)
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -32,6 +35,13 @@ export default function AboutForm({ content }: { content: AboutContent }) {
     setFormErrors({})
 
     const formData = new FormData(event.currentTarget)
+    if (imageFile) {
+        formData.append('imageFile', imageFile)
+    }
+    
+    // We also pass the current imageUrl in case no new file is uploaded
+    formData.append('currentImageUrl', content.imageUrl);
+
     const result = await updateAboutContent(formData)
 
     if (result.success) {
@@ -39,6 +49,11 @@ export default function AboutForm({ content }: { content: AboutContent }) {
         title: 'Success!',
         description: result.message,
       })
+      if (result.newImageUrl) {
+        // If a new image was uploaded, update the content state to reflect it
+        // This is a bit of a workaround because we can't easily trigger a full server data refresh
+        content.imageUrl = result.newImageUrl;
+      }
     } else {
       setError(result.message || 'An unknown error occurred.')
       setFormErrors(result.errors || {})
@@ -54,11 +69,12 @@ export default function AboutForm({ content }: { content: AboutContent }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-2">
-            <Label htmlFor="imageUrl">Image URL</Label>
-            <Input id="imageUrl" name="imageUrl" type="url" defaultValue={content.imageUrl} />
-            {formErrors?.imageUrl && <p className="text-sm font-medium text-destructive">{formErrors.imageUrl[0]}</p>}
-        </div>
+        <ImageUpload
+            id="about-image"
+            name="Profile Image"
+            initialValue={content.imageUrl}
+            onFileSelect={setImageFile}
+        />
         <div className="space-y-2">
             <Label htmlFor="imageHint">Image AI Hint</Label>
             <Input id="imageHint" name="imageHint" defaultValue={content.imageHint} />
