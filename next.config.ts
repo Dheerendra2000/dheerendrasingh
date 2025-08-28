@@ -2,7 +2,7 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   serverActions: {
-    bodySizeLimit: '200mb',
+    bodySizeLimit: '500mb',
   },
   experimental: {
     // This is to allow the development server to accept requests from the preview window.
