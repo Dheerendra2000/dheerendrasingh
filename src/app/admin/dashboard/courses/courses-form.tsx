@@ -123,6 +123,7 @@ export default function CoursesForm({ content }: { content: CoursesContent }) {
                           name="Course Thumbnail"
                           initialValue={course.thumbnail}
                           onFileSelect={(file) => handleFileSelect(course.id, file)}
+                          maxSizeMB={10}
                       />
                   </div>
                    <div className="space-y-2">

@@ -74,6 +74,7 @@ export default function AboutForm({ content }: { content: AboutContent }) {
             name="Profile Image"
             initialValue={content.imageUrl}
             onFileSelect={setImageFile}
+            maxSizeMB={10}
         />
         <div className="space-y-2">
             <Label htmlFor="imageHint">Image AI Hint</Label>

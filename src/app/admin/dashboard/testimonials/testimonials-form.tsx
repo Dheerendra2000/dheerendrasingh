@@ -133,6 +133,7 @@ export default function TestimonialsForm({ content }: { content: TestimonialsCon
                             name="Client Image"
                             initialValue={testimonial.image}
                             onFileSelect={(file) => handleFileSelect(testimonial.id, file)}
+                            maxSizeMB={10}
                        />
                     </div>
                      <div className="space-y-2">

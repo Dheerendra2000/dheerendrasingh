@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState } from 'react'
@@ -154,6 +155,7 @@ export default function MediaForm({ content }: { content: MediaContent }) {
                             name="Outlet Logo"
                             initialValue={item.outletLogoUrl}
                             onFileSelect={(file) => setLogoFiles(prev => new Map(prev).set(item.id, file))}
+                            maxSizeMB={5}
                        />
                     </div>
                 </div>
@@ -164,6 +166,7 @@ export default function MediaForm({ content }: { content: MediaContent }) {
                             name="Cover Image"
                             initialValue={item.coverImageUrl}
                             onFileSelect={(file) => setCoverImageFiles(prev => new Map(prev).set(item.id, file))}
+                            maxSizeMB={15}
                        />
                     </div>
                     <div className="space-y-2">

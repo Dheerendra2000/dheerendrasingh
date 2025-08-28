@@ -228,6 +228,7 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
                                       initialValue={item.src}
                                       onFileSelect={(file) => handlePosterFileSelect(item.id, file)}
                                       accept="image/png, image/jpeg, image/gif"
+                                      maxSizeMB={25}
                                     />
                                   )}
 
@@ -239,6 +240,7 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
                                             initialValue={item.videoSrc}
                                             onFileSelect={(file) => handleVideoFileSelect(item.id, file)}
                                             accept="video/mp4, video/webm"
+                                            maxSizeMB={500}
                                          />
                                      </div>
                                   )}

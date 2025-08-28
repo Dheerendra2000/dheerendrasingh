@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { UploadCloud, X, Video } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 interface ImageUploadProps {
   id: string;
@@ -15,6 +16,7 @@ interface ImageUploadProps {
   initialValue?: string;
   onFileSelect: (file: File | null) => void;
   accept?: string;
+  maxSizeMB?: number;
 }
 
 export default function ImageUpload({ 
@@ -22,8 +24,10 @@ export default function ImageUpload({
   name, 
   initialValue = '', 
   onFileSelect,
-  accept = "image/*" 
+  accept = "image/*",
+  maxSizeMB = 500, // Default to a high value
 }: ImageUploadProps) {
+  const { toast } = useToast();
   const [preview, setPreview] = useState<string | null>(initialValue);
   const [fileName, setFileName] = useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -37,6 +41,17 @@ export default function ImageUpload({
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      if (file.size > maxSizeMB * 1024 * 1024) {
+        toast({
+          title: 'File Too Large',
+          description: `The selected file exceeds the ${maxSizeMB}MB limit.`,
+          variant: 'destructive',
+        });
+        // Clear the input value to allow re-selection of the same file if needed
+        if(fileInputRef.current) fileInputRef.current.value = "";
+        return;
+      }
+
       setPreview(URL.createObjectURL(file));
       setFileName(file.name);
       onFileSelect(file);
@@ -118,7 +133,7 @@ export default function ImageUpload({
               </Button> or drag and drop.
             </p>
             <p className="text-xs text-muted-foreground">
-              {accept === 'image/*' ? 'PNG, JPG, GIF' : accept.toUpperCase().replace(/,/g, ', ')}
+              {accept.toUpperCase().replace(/,/g, ', ')} (Max {maxSizeMB}MB)
             </p>
           </div>
         )}

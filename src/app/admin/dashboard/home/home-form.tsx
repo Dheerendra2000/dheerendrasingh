@@ -175,6 +175,7 @@ export default function HomeForm({ content }: { content: HomeContent }) {
                 initialValue={currentVideoUrl}
                 onFileSelect={setVideoFile}
                 accept="video/mp4,video/webm"
+                maxSizeMB={500}
             />
         </div>
 
