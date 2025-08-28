@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Plus, Trash2, GripVertical, ChevronsUpDown, Check } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import ImageUpload from '@/components/ui/image-upload'
 import {
   Select,
   SelectContent,
@@ -37,7 +38,6 @@ import {
 } from "@/components/ui/command"
 import { cn } from '@/lib/utils'
 
-
 function SubmitButton() {
   const { pending } = useFormStatus()
   return (
@@ -56,7 +56,6 @@ function CategoryCombobox({ value, onChange, categories }: { value: string; onCh
   const showCreateOption = useMemo(() => {
     const trimmedSearch = searchText.trim().toLowerCase();
     if (!trimmedSearch) return false;
-    // Show create option if the typed text doesn't exactly match an existing category
     return !categories.some(c => c.toLowerCase() === trimmedSearch);
   }, [categories, searchText]);
 
@@ -64,79 +63,36 @@ function CategoryCombobox({ value, onChange, categories }: { value: string; onCh
   return (
     <Popover open={open} onOpenChange={(isOpen) => {
       setOpen(isOpen);
-      // Reset search text when closing the popover
-      if (!isOpen) {
-        setSearchText("");
-      }
+      if (!isOpen) setSearchText("");
     }}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between font-normal"
-        >
+        <Button variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between font-normal">
           {displayValue || "Select or create..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <Command
-            // Use a custom filter to handle case-insensitivity
-            filter={(value, search) => {
-              if (value.toLowerCase().includes(search.toLowerCase())) return 1;
-              return 0;
-            }}
-        >
-          <CommandInput
-            value={searchText}
-            onValueChange={setSearchText}
-            placeholder="Search or type new..."
-          />
+        <Command filter={(value, search) => value.toLowerCase().includes(search.toLowerCase()) ? 1 : 0}>
+          <CommandInput value={searchText} onValueChange={setSearchText} placeholder="Search or type new..." />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
-            
             <CommandGroup>
               {categories.map((category) => (
-                <CommandItem
-                  key={category}
-                  value={category}
-                  onSelect={() => {
-                    onChange(category);
-                    setSearchText("");
-                    setOpen(false);
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      value?.toLowerCase() === category.toLowerCase() ? "opacity-100" : "opacity-0"
-                    )}
-                  />
+                <CommandItem key={category} value={category} onSelect={() => { onChange(category); setSearchText(""); setOpen(false); }}>
+                  <Check className={cn("mr-2 h-4 w-4", value?.toLowerCase() === category.toLowerCase() ? "opacity-100" : "opacity-0")} />
                   {category}
                 </CommandItem>
               ))}
             </CommandGroup>
-
             {showCreateOption && <CommandSeparator />}
-            
             {showCreateOption && (
                 <CommandGroup>
-                    <CommandItem
-                        value={searchText}
-                        onSelect={() => {
-                          onChange(searchText.trim());
-                          setSearchText("");
-                          setOpen(false);
-                        }}
-                        className="cursor-pointer"
-                    >
+                    <CommandItem value={searchText} onSelect={() => { onChange(searchText.trim()); setSearchText(""); setOpen(false); }} className="cursor-pointer">
                         <Plus className="mr-2 h-4 w-4" />
                         Create "{searchText}"
                     </CommandItem>
                 </CommandGroup>
             )}
-
           </CommandList>
         </Command>
       </PopoverContent>
@@ -149,6 +105,7 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
   const [state, formAction] = useActionState(updateGalleryContent, null)
   const { toast } = useToast()
   const [items, setItems] = useState<GalleryItem[]>(content.items)
+  const [files, setFiles] = useState<Map<string, File | null>>(new Map());
   const [isBrowser, setIsBrowser] = useState(false);
 
   const existingCategories = [...new Set(items.map((item) => item.category?.trim()).filter(Boolean))].sort();
@@ -160,35 +117,26 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
   useEffect(() => {
     if (!state) return;
     if (state.success) {
-      toast({
-        title: 'Success!',
-        description: state.message,
-      })
+      toast({ title: 'Success!', description: state.message });
+      // Clear files after successful submission
+      setFiles(new Map());
     } else if (state.message) {
-       toast({
-        title: 'Error updating content',
-        description: state.message,
-        variant: 'destructive',
-      })
+       toast({ title: 'Error updating content', description: state.message, variant: 'destructive' });
     }
   }, [state, toast])
 
   const handleInputChange = (id: string, field: keyof Omit<GalleryItem, 'id'>, value: string) => {
-    setItems(prev => 
-      prev.map(item => {
-        if (item.id !== id) return item;
-        
-        const updatedItem = { ...item, [field]: value };
-
-        // When type is switched to 'image', clear the videoSrc to prevent validation issues.
-        if (field === 'type' && value === 'image') {
-          updatedItem.videoSrc = '';
-        }
-        
-        return updatedItem;
-      })
-    )
+    setItems(prev => prev.map(item => {
+      if (item.id !== id) return item;
+      const updatedItem = { ...item, [field]: value };
+      if (field === 'type' && value === 'image') updatedItem.videoSrc = '';
+      return updatedItem;
+    }))
   }
+
+  const handleFileSelect = (id: string, file: File | null) => {
+    setFiles(prev => new Map(prev).set(id, file));
+  };
 
   const addItem = () => {
     setItems(prev => [
@@ -199,61 +147,50 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
 
   const removeItem = (id: string) => {
     setItems(prev => prev.filter(item => item.id !== id))
+    setFiles(prev => {
+        const newFiles = new Map(prev);
+        newFiles.delete(id);
+        return newFiles;
+    });
   }
   
   const onDragEnd = (result: DropResult) => {
     const { destination, source } = result;
-    if (!destination) return;
-    
-    if (destination.droppableId === source.droppableId && destination.index === source.index) {
-      return;
-    }
-
+    if (!destination || (destination.droppableId === source.droppableId && destination.index === source.index)) return;
     const newItems = Array.from(items);
     const [reorderedItem] = newItems.splice(source.index, 1);
     newItems.splice(destination.index, 0, reorderedItem);
-
     setItems(newItems);
   };
 
+  const enhancedFormAction = (formData: FormData) => {
+    formData.set('gallery', JSON.stringify(items));
+    files.forEach((file, id) => {
+      if (file) {
+        formData.set(`src-file-${id}`, file);
+      }
+    });
+    formAction(formData);
+  };
+
   return (
-    <form action={formAction}>
-        <input type="hidden" name="gallery" value={JSON.stringify(items)} />
-        
+    <form action={enhancedFormAction}>
         {isBrowser ? (
           <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="galleryItems">
               {(provided) => (
-                <div 
-                  className="space-y-6"
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                >
+                <div className="space-y-6" ref={provided.innerRef} {...provided.droppableProps}>
                   {items.map((item, index) => (
                     <Draggable key={item.id} draggableId={item.id} index={index}>
                       {(provided) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                        >
+                        <div ref={provided.innerRef} {...provided.draggableProps}>
                           <Card className="bg-secondary/50 relative">
-                             <div 
-                               {...provided.dragHandleProps}
-                               className="absolute top-1/2 -translate-y-1/2 left-3 text-muted-foreground cursor-grab p-1"
-                               aria-label="Drag to reorder"
-                             >
+                             <div {...provided.dragHandleProps} className="absolute top-1/2 -translate-y-1/2 left-3 text-muted-foreground cursor-grab p-1" aria-label="Drag to reorder">
                                <GripVertical className="h-6 w-6" />
                              </div>
                              <div className="pl-12">
                                 <CardHeader className="pb-4">
-                                    <Button 
-                                      type="button" 
-                                      variant="destructive" 
-                                      size="icon" 
-                                      className="absolute top-4 right-4 h-8 w-8"
-                                      onClick={() => removeItem(item.id)}
-                                      aria-label="Remove gallery item"
-                                    >
+                                    <Button type="button" variant="destructive" size="icon" className="absolute top-4 right-4 h-8 w-8" onClick={() => removeItem(item.id)} aria-label="Remove gallery item">
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
                                 </CardHeader>
@@ -261,89 +198,47 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                       <div className="space-y-2">
                                           <Label>Item Type</Label>
-                                          <RadioGroup
-                                            value={item.type}
-                                            onValueChange={(value) => handleInputChange(item.id, 'type', value as 'image' | 'video')}
-                                            className="flex items-center gap-4 pt-2"
-                                          >
-                                            <div className="flex items-center space-x-2">
-                                              <RadioGroupItem value="image" id={`type-image-${item.id}`} />
-                                              <Label htmlFor={`type-image-${item.id}`} className="font-normal">Image</Label>
-                                            </div>
-                                            <div className="flex items-center space-x-2">
-                                              <RadioGroupItem value="video" id={`type-video-${item.id}`} />
-                                              <Label htmlFor={`type-video-${item.id}`} className="font-normal">Video</Label>
-                                            </div>
+                                          <RadioGroup value={item.type} onValueChange={(value) => handleInputChange(item.id, 'type', value as 'image' | 'video')} className="flex items-center gap-4 pt-2">
+                                            <div className="flex items-center space-x-2"><RadioGroupItem value="image" id={`type-image-${item.id}`} /><Label htmlFor={`type-image-${item.id}`} className="font-normal">Image</Label></div>
+                                            <div className="flex items-center space-x-2"><RadioGroupItem value="video" id={`type-video-${item.id}`} /><Label htmlFor={`type-video-${item.id}`} className="font-normal">Video</Label></div>
                                           </RadioGroup>
                                       </div>
                                       <div className="space-y-2">
                                           <Label htmlFor={`size-${item.id}`}>Display Size</Label>
-                                          <Select
-                                              value={item.size || 'regular'}
-                                              onValueChange={(value) => handleInputChange(item.id, 'size', value)}
-                                          >
-                                              <SelectTrigger id={`size-${item.id}`}>
-                                                  <SelectValue placeholder="Select display size" />
-                                              </SelectTrigger>
-                                              <SelectContent>
-                                                  <SelectItem value="regular">Regular</SelectItem>
-                                                  <SelectItem value="large">Large (2 columns)</SelectItem>
-                                              </SelectContent>
+                                          <Select value={item.size || 'regular'} onValueChange={(value) => handleInputChange(item.id, 'size', value)}>
+                                              <SelectTrigger id={`size-${item.id}`}><SelectValue placeholder="Select display size" /></SelectTrigger>
+                                              <SelectContent><SelectItem value="regular">Regular</SelectItem><SelectItem value="large">Large (2 columns)</SelectItem></SelectContent>
                                           </Select>
                                       </div>
                                   </div>
                                   
-                                  <div className="space-y-2">
-                                      <Label htmlFor={`src-${item.id}`}>{item.type === 'video' ? 'Poster URL (Optional)' : 'Image URL'}</Label>
-                                      <Input 
-                                          id={`src-${item.id}`}
-                                          type="url"
-                                          value={item.src || ''}
-                                          onChange={(e) => handleInputChange(item.id, 'src', e.target.value)}
-                                          placeholder="https://placehold.co/600x400.png"
-                                      />
-                                  </div>
+                                  <ImageUpload
+                                    id={`src-file-${item.id}`}
+                                    name={item.type === 'video' ? 'Video Poster' : 'Image'}
+                                    initialValue={item.src}
+                                    onFileSelect={(file) => handleFileSelect(item.id, file)}
+                                  />
 
                                   {item.type === 'video' && (
                                     <div className="space-y-2">
-                                      <Label htmlFor={`videoSrc-${item.id}`}>Video URL</Label>
-                                      <Input
-                                        id={`videoSrc-${item.id}`}
-                                        type="url"
-                                        value={item.videoSrc || ''}
-                                        onChange={(e) => handleInputChange(item.id, 'videoSrc', e.target.value)}
-                                        placeholder="e.g., https://videos.pexels.com/video.mp4"
-                                      />
+                                      <Label htmlFor={`videoSrc-${item.id}`}>Video URL (e.g. from Pexels)</Label>
+                                      <Input id={`videoSrc-${item.id}`} type="url" value={item.videoSrc || ''} onChange={(e) => handleInputChange(item.id, 'videoSrc', e.target.value)} placeholder="https://videos.pexels.com/video.mp4" />
                                     </div>
                                   )}
                                   
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                       <div className="space-y-2">
                                           <Label>Category</Label>
-                                           <CategoryCombobox
-                                              value={item.category || ''}
-                                              onChange={(newValue) => handleInputChange(item.id, 'category', newValue)}
-                                              categories={existingCategories}
-                                            />
+                                           <CategoryCombobox value={item.category || ''} onChange={(newValue) => handleInputChange(item.id, 'category', newValue)} categories={existingCategories} />
                                       </div>
                                       <div className="space-y-2">
                                           <Label htmlFor={`hint-${item.id}`}>AI Hint (for poster)</Label>
-                                          <Input 
-                                              id={`hint-${item.id}`}
-                                              value={item.hint || ''}
-                                              onChange={(e) => handleInputChange(item.id, 'hint', e.target.value)}
-                                              placeholder="e.g., conference stage"
-                                          />
+                                          <Input id={`hint-${item.id}`} value={item.hint || ''} onChange={(e) => handleInputChange(item.id, 'hint', e.target.value)} placeholder="e.g., conference stage" />
                                       </div>
                                   </div>
                                   <div className="space-y-2">
                                       <Label htmlFor={`alt-${item.id}`}>Alt Text (for accessibility)</Label>
-                                      <Input 
-                                          id={`alt-${item.id}`}
-                                          value={item.alt || ''}
-                                          onChange={(e) => handleInputChange(item.id, 'alt', e.target.value)}
-                                          placeholder="e.g., Speaking at a major tech conference"
-                                      />
+                                      <Input id={`alt-${item.id}`} value={item.alt || ''} onChange={(e) => handleInputChange(item.id, 'alt', e.target.value)} placeholder="e.g., Speaking at a major tech conference" />
                                   </div>
                                 </CardContent>
                               </div>
@@ -359,18 +254,8 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
           </DragDropContext>
         ) : null}
 
-        {state?.errors?._form && 
-            <Alert variant="destructive" className="mt-4">
-              <AlertTitle>Save Error</AlertTitle>
-              <AlertDescription>{state.errors._form}</AlertDescription>
-            </Alert>
-        }
-
-        <Button type="button" variant="outline" onClick={addItem} className="mt-6 w-full">
-            <Plus className="h-4 w-4 mr-2" />
-            Add New Media Item
-        </Button>
-        
+        {state?.errors?._form && <Alert variant="destructive" className="mt-4"><AlertTitle>Save Error</AlertTitle><AlertDescription>{state.errors._form}</AlertDescription></Alert>}
+        <Button type="button" variant="outline" onClick={addItem} className="mt-6 w-full"><Plus className="h-4 w-4 mr-2" /> Add New Media Item</Button>
         <SubmitButton />
     </form>
   )
