@@ -179,7 +179,9 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
           const uploadResult = await uploadFile(file, path);
           
           if (!uploadResult.success || !uploadResult.url) {
-            throw new Error(uploadResult.error || `Failed to upload file for item ${i + 1}.`);
+            setError(uploadResult.error || `Failed to upload file for item ${i + 1}.`);
+            setIsSubmitting(false);
+            return; // Stop the submission process
           }
           
           if (item.type === 'video') {
