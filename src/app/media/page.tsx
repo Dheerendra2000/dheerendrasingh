@@ -1,5 +1,6 @@
 import Dock from '@/components/layout/dock'
 import Footer from '@/components/layout/footer'
+import Header from '@/components/layout/header'
 import MediaClient from './media-client'
 import { getMediaContent } from '@/lib/data/media'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -11,6 +12,7 @@ export default async function MediaPage() {
     if (content.error) {
       return (
         <div className="flex flex-col min-h-screen">
+          <Header />
           <Dock />
           <main className="flex-grow">
             <section id="media-hub" className="py-20 bg-transparent">
@@ -35,6 +37,7 @@ export default async function MediaPage() {
 
     return (
         <div className="flex flex-col min-h-screen">
+            <Header />
             <Dock />
             <main className="flex-grow">
                 <MediaClient content={content} />
