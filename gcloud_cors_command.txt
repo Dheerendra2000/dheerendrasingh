@@ -17,7 +17,7 @@
 gsutil cors set - <<EOF
 [
     {
-      "origin": ["https://www.dheerendrasingh.com", "https://*.firebase.studio", "https://*.cloudworkstations.dev", "http://localhost:9002"],
+      "origin": ["https://www.dheerendrasingh.com/", "https://www.dheerendrasingh.com", "https://*.firebase.studio", "https://*.cloudworkstations.dev", "http://localhost:9002"],
       "method": ["PUT", "GET", "HEAD"],
       "responseHeader": ["Content-Type", "Content-Length"],
       "maxAgeSeconds": 3600
@@ -25,3 +25,15 @@ gsutil cors set - <<EOF
 ]
 EOF gs://dheerendra-591e7.appspot.com
 
+################################################################################
+# Google Cloud Storage Public Access Configuration (IMPORTANT)
+#
+# INSTRUCTIONS:
+# After running the CORS command above, you must also make your bucket's
+# objects publicly readable. This will fix the 'AccessDenied' errors.
+#
+# 1. Copy the 'gsutil iam ch' command below.
+# 2. Paste it into the same terminal and press Enter.
+################################################################################
+
+gsutil iam ch allUsers:objectViewer gs://dheerendra-591e7.appspot.com
