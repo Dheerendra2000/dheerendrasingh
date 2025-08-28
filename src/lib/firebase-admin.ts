@@ -41,16 +41,23 @@ function initializeFirebaseAdmin(): FirebaseAdmin {
   }
 
   const email = serviceAccount.client_email;
-  const storageBucket = process.env.FIREBASE_STORAGE_BUCKET;
+  const storageBucket = "dheerendra-591e7.appspot.com";
+
+  const appConfig = {
+      credential: admin.credential.cert(serviceAccount),
+      storageBucket: storageBucket,
+  };
 
   // If the app is already initialized, return the existing instance.
   // This is common in development with hot-reloading.
   if (admin.apps.length > 0) {
     const app = admin.app();
+     // In some environments, the first initialization might not have had the storage bucket.
+     // It's safer to use the config to get storage.
     return {
         app,
         db: getFirestore(app),
-        storage: getStorage(app),
+        storage: getStorage(app, appConfig.storageBucket),
         adminAuth: app.auth(),
         initError: null,
         clientEmail: email,
@@ -59,10 +66,7 @@ function initializeFirebaseAdmin(): FirebaseAdmin {
 
   // Otherwise, initialize a new app instance.
   try {
-    const app = admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      storageBucket: storageBucket,
-    });
+    const app = admin.initializeApp(appConfig);
     return {
         app,
         db: getFirestore(app),
