@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -40,10 +41,7 @@ export default function AchievementsForm({ content }: { content: AchievementsCon
     setIsSubmitting(true)
     setError(null)
     
-    const formData = new FormData()
-    formData.append('achievements', JSON.stringify(achievements))
-
-    const result = await updateAchievementsContent(formData)
+    const result = await updateAchievementsContent({ achievements });
 
     if (result.success) {
       toast({

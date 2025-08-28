@@ -1,3 +1,4 @@
+
 'use server'
 
 import { z } from 'zod'
@@ -21,7 +22,7 @@ type ReturnValue = {
     message: string;
 }
 
-export async function updateAchievementsContent(formData: FormData): Promise<ReturnValue> {
+export async function updateAchievementsContent(data: unknown): Promise<ReturnValue> {
   if (initError || !db) {
     return { 
         success: false,
@@ -29,26 +30,7 @@ export async function updateAchievementsContent(formData: FormData): Promise<Ret
     }
   }
 
-  const achievementsJson = formData.get('achievements');
-
-  if (typeof achievementsJson !== 'string') {
-    return { 
-        success: false,
-        message: 'Invalid form data submitted. Could not find achievements data.',
-    }
-  }
-
-  let parsedData;
-  try {
-    parsedData = { achievements: JSON.parse(achievementsJson) };
-  } catch (error) {
-     return { 
-        success: false,
-        message: 'Invalid data format. Achievements data is not valid JSON.',
-    }
-  }
-
-  const result = achievementsContentSchema.safeParse(parsedData)
+  const result = achievementsContentSchema.safeParse(data)
 
   if (!result.success) {
     const firstIssue = result.error.issues[0];
