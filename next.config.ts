@@ -1,9 +1,16 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
   serverActions: {
     bodySizeLimit: '200mb',
+  },
+  experimental: {
+    // This is to allow the development server to accept requests from the preview window.
+    // In a future major version of Next.js, this will be the default behavior.
+    allowedDevOrigins: [
+        'https://*.cloudworkstations.dev',
+        'https://*.firebase.studio'
+    ]
   },
   typescript: {
     ignoreBuildErrors: true,
