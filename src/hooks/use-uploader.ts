@@ -1,3 +1,4 @@
+
 // src/hooks/use-uploader.ts
 'use client'
 
@@ -40,7 +41,7 @@ export function useUploader(): UseUploaderReturn {
     const { uploadUrl, publicUrl } = signedUrlResponse;
 
     // 2. Upload the file directly to Google Cloud Storage using the signed URL
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const xhr = new XMLHttpRequest();
       
       xhr.open('PUT', uploadUrl, true);
@@ -60,19 +61,26 @@ export function useUploader(): UseUploaderReturn {
           setUploadState({ isUploading: false, uploadProgress: 100, error: null });
           resolve({ success: true, url: publicUrl });
         } else {
-          const errorMsg = `Upload failed with status: ${xhr.status} ${xhr.statusText}`;
-          console.error('Upload Error:', xhr.responseText);
-          setUploadState({ isUploading: false, uploadProgress: null, error: errorMsg });
-          resolve({ success: false, error: errorMsg });
+          // Check for a likely CORS error.
+          if (xhr.status === 0 && !xhr.statusText) {
+             const corsErrorMsg = `The upload was blocked by the browser. This is likely a CORS configuration issue on your Google Cloud Storage bucket. Please see the 'gcloud_cors_command.txt' file in your project root for instructions on how to fix this.`;
+             setUploadState({ isUploading: false, uploadProgress: null, error: corsErrorMsg });
+             resolve({ success: false, error: corsErrorMsg });
+          } else {
+            const errorMsg = `Upload failed with status: ${xhr.status} ${xhr.statusText}.`;
+            console.error('Upload Error:', xhr.responseText);
+            setUploadState({ isUploading: false, uploadProgress: null, error: errorMsg });
+            resolve({ success: false, error: errorMsg });
+          }
         }
       };
 
       // Handle errors
       xhr.onerror = () => {
-        const errorMsg = 'An unknown network error occurred during upload.';
+         const corsErrorMsg = `The upload was blocked by the browser. This is likely a CORS configuration issue on your Google Cloud Storage bucket. Please see the 'gcloud_cors_command.txt' file in your project root for instructions on how to fix this.`;
         console.error('XHR OnError:', xhr.statusText);
-        setUploadState({ isUploading: false, uploadProgress: null, error: errorMsg });
-        resolve({ success: false, error: errorMsg });
+        setUploadState({ isUploading: false, uploadProgress: null, error: corsErrorMsg });
+        resolve({ success: false, error: corsErrorMsg });
       };
 
       xhr.send(file);

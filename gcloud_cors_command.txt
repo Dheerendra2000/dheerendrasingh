@@ -1,0 +1,27 @@
+
+################################################################################
+# Google Cloud Storage CORS Configuration
+#
+# INSTRUCTIONS:
+# 1. Open a new terminal.
+# 2. Authenticate with Google Cloud by running:
+#    gcloud auth login
+# 3. Set your project ID by running (replace YOUR_PROJECT_ID with your actual project ID):
+#    gcloud config set project dheerendra-591e7
+# 4. Copy the entire 'gsutil cors set' command below.
+# 5. Paste it into your terminal and press Enter to apply the CORS policy to your bucket.
+#
+# This command allows your website to upload files directly to your storage bucket.
+################################################################################
+
+gsutil cors set - <<EOF
+[
+    {
+      "origin": ["https://*.firebase.studio", "https://*.cloudworkstations.dev", "http://localhost:9002"],
+      "method": ["PUT", "GET", "HEAD"],
+      "responseHeader": ["Content-Type", "Content-Length"],
+      "maxAgeSeconds": 3600
+    }
+]
+EOF gs://dheerendra-591e7.appspot.com
+
