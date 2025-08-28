@@ -232,13 +232,15 @@ export default function GalleryForm({ content }: { content: GalleryContent }) {
                                   )}
 
                                   {item.type === 'video' && (
-                                    <ImageUpload
-                                        id={`video-file-${item.id}`}
-                                        name="Video File"
-                                        initialValue={item.videoSrc}
-                                        onFileSelect={(file) => handleVideoFileSelect(item.id, file)}
-                                        accept="video/mp4, video/webm"
-                                     />
+                                     <div className="space-y-4">
+                                         <ImageUpload
+                                            id={`video-file-${item.id}`}
+                                            name="Video File"
+                                            initialValue={item.videoSrc}
+                                            onFileSelect={(file) => handleVideoFileSelect(item.id, file)}
+                                            accept="video/mp4, video/webm"
+                                         />
+                                     </div>
                                   )}
                                   
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

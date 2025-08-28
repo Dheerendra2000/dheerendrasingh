@@ -52,11 +52,13 @@ export async function updateGalleryContent(formData: FormData): Promise<ReturnVa
   // Custom validation check for required files before Zod parse
   for (let i = 0; i < parsedData.items.length; i++) {
     const item = parsedData.items[i];
-    const imageFile = formData.get(`src-file-${item.id}`) as File | null;
     
-    if (item.type === 'image' && !item.src && (!imageFile || imageFile.size === 0)) {
-        const errorMessage = `Error in Item #${i + 1}: An image is required. Please upload a file or provide a URL.`;
-        return { success: false, message: errorMessage};
+    if (item.type === 'image') {
+        const imageFile = formData.get(`src-file-${item.id}`) as File | null;
+        if (!item.src && (!imageFile || imageFile.size === 0)) {
+            const errorMessage = `Error in Item #${i + 1}: An image is required. Please upload a file or provide a URL.`;
+            return { success: false, message: errorMessage};
+        }
     }
      
     if (item.type === 'video') {

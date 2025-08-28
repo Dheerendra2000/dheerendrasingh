@@ -83,17 +83,17 @@ export default function GalleryClient({ content }: { content: GalleryContent }) 
             <Card 
               key={item.id} 
               className={cn(
-                "overflow-hidden group shadow-lg !bg-transparent",
+                "overflow-hidden group shadow-lg !bg-transparent aspect-video",
                 item.size === 'large' ? 'sm:col-span-2 lg:col-span-2' : ''
               )}
             >
-              <CardContent className="p-0">
+              <CardContent className="p-0 h-full">
                   {item.type === 'video' && item.videoSrc ? (
                      <VideoPlayer
                         src={item.videoSrc}
                         alt={item.alt}
                       />
-                  ) : (
+                  ) : item.type === 'image' && item.src ? (
                     <Image
                       src={item.src}
                       alt={item.alt}
@@ -102,7 +102,7 @@ export default function GalleryClient({ content }: { content: GalleryContent }) 
                       height={400}
                       className="object-cover w-full h-full transform group-hover:scale-110 transition-transform duration-500"
                     />
-                  )}
+                  ) : null }
               </CardContent>
             </Card>
           ))}
