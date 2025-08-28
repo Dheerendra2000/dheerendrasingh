@@ -40,7 +40,7 @@ export default function AboutForm({ content }: { content: AboutContent }) {
 
     try {
         let finalImageUrl = currentImageUrl;
-        // 1. If a new file is selected, upload it first.
+        
         if (imageFile) {
             const uploadResult = await uploadFile(imageFile, 'about');
             if (!uploadResult.success || !uploadResult.url) {
@@ -51,9 +51,8 @@ export default function AboutForm({ content }: { content: AboutContent }) {
             finalImageUrl = uploadResult.url;
         }
 
-        // 2. Prepare data and call the server action.
         const formData = new FormData(event.currentTarget);
-        const rawData = {
+        const data = {
           heading: formData.get('heading') as string,
           paragraph1: formData.get('paragraph1') as string,
           paragraph2: formData.get('paragraph2') as string,
@@ -66,8 +65,8 @@ export default function AboutForm({ content }: { content: AboutContent }) {
 
         if (result.success) {
             toast({ title: 'Success!', description: result.message });
-            setCurrentImageUrl(finalImageUrl); // Update the state to reflect new image
-            setImageFile(null); // Clear the selected file
+            setCurrentImageUrl(finalImageUrl);
+            setImageFile(null);
         } else {
             setError(result.message || 'An unknown error occurred.');
             setFormErrors(result.errors || {});
@@ -127,7 +126,7 @@ export default function AboutForm({ content }: { content: AboutContent }) {
         {isUploading && (
           <div className="space-y-2">
             <Label>Uploading Image...</Label>
-            <Progress value={uploadProgress} />
+            <Progress value={uploadProgress || 0} />
           </div>
         )}
 
