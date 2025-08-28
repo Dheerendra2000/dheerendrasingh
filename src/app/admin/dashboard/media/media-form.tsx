@@ -16,10 +16,13 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
+import ImageUpload from '@/components/ui/image-upload'
 
 export default function MediaForm({ content }: { content: MediaContent }) {
   const { toast } = useToast()
   const [items, setItems] = useState<MediaItem[]>(content.items)
+  const [logoFiles, setLogoFiles] = useState<Map<string, File | null>>(new Map());
+  const [coverImageFiles, setCoverImageFiles] = useState<Map<string, File | null>>(new Map());
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -55,6 +58,16 @@ export default function MediaForm({ content }: { content: MediaContent }) {
 
   const removeItem = (id: string) => {
     setItems(prev => prev.filter(item => item.id !== id))
+    setLogoFiles(prev => {
+        const newFiles = new Map(prev);
+        newFiles.delete(id);
+        return newFiles;
+    });
+    setCoverImageFiles(prev => {
+        const newFiles = new Map(prev);
+        newFiles.delete(id);
+        return newFiles;
+    });
   }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -64,6 +77,12 @@ export default function MediaForm({ content }: { content: MediaContent }) {
     
     const formData = new FormData()
     formData.append('media', JSON.stringify(items))
+    logoFiles.forEach((file, id) => {
+        if (file) formData.set(`logo-file-${id}`, file);
+    });
+    coverImageFiles.forEach((file, id) => {
+        if (file) formData.set(`cover-file-${id}`, file);
+    });
 
     const result = await updateMediaContent(formData)
 
@@ -72,6 +91,8 @@ export default function MediaForm({ content }: { content: MediaContent }) {
         title: 'Success!',
         description: result.message,
       })
+      setLogoFiles(new Map());
+      setCoverImageFiles(new Map());
     } else {
       setError(result.message || 'An unknown error occurred.')
       toast({
@@ -128,14 +149,22 @@ export default function MediaForm({ content }: { content: MediaContent }) {
                         <Input id={`outletName-${item.id}`} value={item.outletName} onChange={(e) => handleInputChange(item.id, 'outletName', e.target.value)} placeholder="e.g., Forbes" />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor={`outletLogoUrl-${item.id}`}>Outlet Logo URL</Label>
-                        <Input id={`outletLogoUrl-${item.id}`} type="url" value={item.outletLogoUrl} onChange={(e) => handleInputChange(item.id, 'outletLogoUrl', e.target.value)} placeholder="https://..." />
+                        <ImageUpload
+                            id={`logo-file-${item.id}`}
+                            name="Outlet Logo"
+                            initialValue={item.outletLogoUrl}
+                            onFileSelect={(file) => setLogoFiles(prev => new Map(prev).set(item.id, file))}
+                       />
                     </div>
                 </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <Label htmlFor={`coverImageUrl-${item.id}`}>Cover Image URL</Label>
-                        <Input id={`coverImageUrl-${item.id}`} type="url" value={item.coverImageUrl} onChange={(e) => handleInputChange(item.id, 'coverImageUrl', e.target.value)} placeholder="https://placehold.co/600x400.png" />
+                        <ImageUpload
+                            id={`cover-file-${item.id}`}
+                            name="Cover Image"
+                            initialValue={item.coverImageUrl}
+                            onFileSelect={(file) => setCoverImageFiles(prev => new Map(prev).set(item.id, file))}
+                       />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor={`coverImageHint-${item.id}`}>Cover Image AI Hint</Label>
