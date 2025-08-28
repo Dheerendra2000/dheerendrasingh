@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -42,6 +42,8 @@ export default function HomeForm({ content }: { content: HomeContent }) {
   const [taglineColor, setTaglineColor] = useState(content.heroTaglineColor);
   const [videoFile, setVideoFile] = useState<File | null>(null)
   const [currentVideoUrl, setCurrentVideoUrl] = useState(content.videoUrl)
+  
+  const formRef = useRef<HTMLFormElement>(null);
 
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -63,13 +65,19 @@ export default function HomeForm({ content }: { content: HomeContent }) {
             finalVideoUrl = uploadResult.url;
         }
 
+        if (!formRef.current) {
+            setError("Form reference is not available.");
+            setIsSubmitting(false);
+            return;
+        }
+
         // 2. Prepare data and call the server action.
-        const formData = new FormData(event.currentTarget);
+        const currentForm = new FormData(formRef.current);
         const rawData = {
-            heroTitle: formData.get('heroTitle') as string,
-            heroTagline: formData.get('heroTagline') as string,
-            heroTitleColor: formData.get('heroTitleColor') as string,
-            heroTaglineColor: formData.get('heroTaglineColor') as string,
+            heroTitle: currentForm.get('heroTitle') as string,
+            heroTagline: currentForm.get('heroTagline') as string,
+            heroTitleColor: currentForm.get('heroTitleColor') as string,
+            heroTaglineColor: currentForm.get('heroTaglineColor') as string,
             videoUrl: finalVideoUrl,
         };
 
@@ -92,7 +100,7 @@ export default function HomeForm({ content }: { content: HomeContent }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
             <Label htmlFor="heroTitle">Hero Title</Label>
             <Input id="heroTitle" name="heroTitle" defaultValue={content.heroTitle} />
@@ -202,7 +210,7 @@ export default function HomeForm({ content }: { content: HomeContent }) {
         {isUploading && (
           <div className="space-y-2">
             <Label>Uploading Video...</Label>
-            <Progress value={uploadProgress} />
+            <Progress value={uploadProgress || 0} />
           </div>
         )}
 
@@ -212,3 +220,5 @@ export default function HomeForm({ content }: { content: HomeContent }) {
     </form>
   )
 }
+
+    
