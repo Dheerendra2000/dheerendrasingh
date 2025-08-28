@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,6 +11,8 @@ import { updateAboutContent } from './actions'
 import { Loader2 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import ImageUpload from '@/components/ui/image-upload'
+import { useUploader } from '@/hooks/use-uploader'
+import { Progress } from '@/components/ui/progress'
 
 type AboutContent = {
   imageUrl: string;
@@ -23,10 +25,12 @@ type AboutContent = {
 
 export default function AboutForm({ content }: { content: AboutContent }) {
   const { toast } = useToast()
+  const { uploadFile, isUploading, uploadProgress, error: uploaderError } = useUploader();
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [formErrors, setFormErrors] = useState<Record<string, string[]>>({})
   const [imageFile, setImageFile] = useState<File | null>(null)
+  const [currentImageUrl, setCurrentImageUrl] = useState(content.imageUrl)
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -34,37 +38,46 @@ export default function AboutForm({ content }: { content: AboutContent }) {
     setError(null)
     setFormErrors({})
 
-    const formData = new FormData(event.currentTarget)
-    if (imageFile) {
-        formData.append('imageFile', imageFile)
+    try {
+        let finalImageUrl = currentImageUrl;
+        // 1. If a new file is selected, upload it first.
+        if (imageFile) {
+            const uploadResult = await uploadFile(imageFile, 'about');
+            if (!uploadResult.success || !uploadResult.url) {
+                setError(uploadResult.error || "Image upload failed. Please try again.");
+                setIsSubmitting(false);
+                return;
+            }
+            finalImageUrl = uploadResult.url;
+        }
+
+        // 2. Prepare data and call the server action.
+        const formData = new FormData(event.currentTarget);
+        const rawData = {
+          heading: formData.get('heading') as string,
+          paragraph1: formData.get('paragraph1') as string,
+          paragraph2: formData.get('paragraph2') as string,
+          highlights: formData.get('highlights') as string,
+          imageHint: formData.get('imageHint') as string,
+          imageUrl: finalImageUrl,
+        };
+        
+        const result = await updateAboutContent(data);
+
+        if (result.success) {
+            toast({ title: 'Success!', description: result.message });
+            setCurrentImageUrl(finalImageUrl); // Update the state to reflect new image
+            setImageFile(null); // Clear the selected file
+        } else {
+            setError(result.message || 'An unknown error occurred.');
+            setFormErrors(result.errors || {});
+        }
+    } catch (e: any) {
+        console.error("Submission failed:", e);
+        setError("An unexpected error occurred on the client. Please check the console.");
+    } finally {
+        setIsSubmitting(false)
     }
-    
-    // We also pass the current imageUrl in case no new file is uploaded
-    formData.append('currentImageUrl', content.imageUrl);
-
-    const result = await updateAboutContent(formData)
-
-    if (result.success) {
-      toast({
-        title: 'Success!',
-        description: result.message,
-      })
-      if (result.newImageUrl) {
-        // If a new image was uploaded, update the content state to reflect it
-        // This is a bit of a workaround because we can't easily trigger a full server data refresh
-        content.imageUrl = result.newImageUrl;
-      }
-    } else {
-      setError(result.message || 'An unknown error occurred.')
-      setFormErrors(result.errors || {})
-      toast({
-        title: 'Error updating content',
-        description: result.message,
-        variant: 'destructive',
-      })
-    }
-
-    setIsSubmitting(false)
   }
 
   return (
@@ -72,7 +85,7 @@ export default function AboutForm({ content }: { content: AboutContent }) {
         <ImageUpload
             id="about-image"
             name="Profile Image"
-            initialValue={content.imageUrl}
+            initialValue={currentImageUrl}
             onFileSelect={setImageFile}
             maxSizeMB={10}
         />
@@ -104,14 +117,21 @@ export default function AboutForm({ content }: { content: AboutContent }) {
             {formErrors?.highlights && <p className="text-sm font-medium text-destructive">{formErrors.highlights[0]}</p>}
         </div>
         
-        {error && !Object.keys(formErrors).length && (
+        {(error || uploaderError) && !Object.keys(formErrors).length && (
             <Alert variant="destructive">
                 <AlertTitle>Save Error</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>{error || uploaderError}</AlertDescription>
             </Alert>
         )}
+        
+        {isUploading && (
+          <div className="space-y-2">
+            <Label>Uploading Image...</Label>
+            <Progress value={uploadProgress} />
+          </div>
+        )}
 
-        <Button type="submit" disabled={isSubmitting} className="w-full">
+        <Button type="submit" disabled={isSubmitting || isUploading} className="w-full">
             {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save Changes'}
         </Button>
     </form>

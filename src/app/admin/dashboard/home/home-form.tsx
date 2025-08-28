@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -10,6 +10,8 @@ import { updateHomeContent } from './actions'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Loader2 } from 'lucide-react'
 import ImageUpload from '@/components/ui/image-upload'
+import { useUploader } from '@/hooks/use-uploader'
+import { Progress } from '@/components/ui/progress'
 
 type HomeContent = {
   heroTitle: string;
@@ -30,9 +32,9 @@ const colorPalette = [
   '#000000', // Black
 ];
 
-
 export default function HomeForm({ content }: { content: HomeContent }) {
   const { toast } = useToast()
+  const { uploadFile, isUploading, uploadProgress, error: uploaderError } = useUploader();
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [formErrors, setFormErrors] = useState<Record<string, string[]>>({})
@@ -48,34 +50,45 @@ export default function HomeForm({ content }: { content: HomeContent }) {
     setError(null)
     setFormErrors({})
 
-    const formData = new FormData(event.currentTarget)
-    if (videoFile) {
-        formData.append('videoFile', videoFile)
+    try {
+        let finalVideoUrl = currentVideoUrl;
+        // 1. If a new file is selected, upload it first.
+        if (videoFile) {
+            const uploadResult = await uploadFile(videoFile, 'hero');
+            if (!uploadResult.success || !uploadResult.url) {
+                setError(uploadResult.error || "Video upload failed. Please try again.");
+                setIsSubmitting(false);
+                return;
+            }
+            finalVideoUrl = uploadResult.url;
+        }
+
+        // 2. Prepare data and call the server action.
+        const formData = new FormData(event.currentTarget);
+        const rawData = {
+            heroTitle: formData.get('heroTitle') as string,
+            heroTagline: formData.get('heroTagline') as string,
+            heroTitleColor: formData.get('heroTitleColor') as string,
+            heroTaglineColor: formData.get('heroTaglineColor') as string,
+            videoUrl: finalVideoUrl,
+        };
+
+        const result = await updateHomeContent(rawData);
+
+        if (result.success) {
+            toast({ title: 'Success!', description: result.message });
+            setCurrentVideoUrl(finalVideoUrl);
+            setVideoFile(null);
+        } else {
+            setError(result.message || 'An unknown error occurred.');
+            setFormErrors(result.errors || {});
+        }
+    } catch (e: any) {
+        console.error("Submission failed:", e);
+        setError("An unexpected error occurred on the client. Please check the console.");
+    } finally {
+        setIsSubmitting(false)
     }
-    
-    formData.append('currentVideoUrl', currentVideoUrl);
-
-    const result = await updateHomeContent(formData)
-
-    if (result.success) {
-      toast({
-        title: 'Success!',
-        description: result.message,
-      })
-      if (result.newVideoUrl) {
-        setCurrentVideoUrl(result.newVideoUrl);
-      }
-    } else {
-      setError(result.message || 'An unknown error occurred.')
-      setFormErrors(result.errors || {})
-      toast({
-        title: 'Error updating content',
-        description: result.message,
-        variant: 'destructive',
-      })
-    }
-
-    setIsSubmitting(false)
   }
 
   return (
@@ -85,7 +98,7 @@ export default function HomeForm({ content }: { content: HomeContent }) {
             <Input id="heroTitle" name="heroTitle" defaultValue={content.heroTitle} />
             {formErrors?.heroTitle && <p className="text-sm font-medium text-destructive">{formErrors.heroTitle[0]}</p>}
         </div>
-          <div className="space-y-2">
+        <div className="space-y-2">
             <Label htmlFor="heroTagline">Hero Tagline</Label>
             <Input id="heroTagline" name="heroTagline" defaultValue={content.heroTagline} />
             {formErrors?.heroTagline && <p className="text-sm font-medium text-destructive">{formErrors.heroTagline[0]}</p>}
@@ -179,14 +192,21 @@ export default function HomeForm({ content }: { content: HomeContent }) {
             />
         </div>
 
-        {error && !Object.keys(formErrors).length && (
+        {(error || uploaderError) && !Object.keys(formErrors).length && (
             <Alert variant="destructive">
                 <AlertTitle>Save Error</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>{error || uploaderError}</AlertDescription>
             </Alert>
         )}
         
-        <Button type="submit" disabled={isSubmitting} className="w-full">
+        {isUploading && (
+          <div className="space-y-2">
+            <Label>Uploading Video...</Label>
+            <Progress value={uploadProgress} />
+          </div>
+        )}
+
+        <Button type="submit" disabled={isSubmitting || isUploading} className="w-full">
             {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save Changes'}
         </Button>
     </form>
