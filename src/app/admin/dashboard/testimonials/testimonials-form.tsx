@@ -13,9 +13,12 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Plus, Trash2, Loader2 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import ImageUpload from '@/components/ui/image-upload'
+import { useUploader } from '@/hooks/use-uploader'
+import { Progress } from '@/components/ui/progress'
 
 export default function TestimonialsForm({ content }: { content: TestimonialsContent }) {
   const { toast } = useToast()
+  const { uploadFile, isUploading, uploadProgress, error: uploaderError } = useUploader();
   const [testimonials, setTestimonials] = useState<Testimonial[]>(content.testimonials)
   const [imageFiles, setImageFiles] = useState<Map<string, File | null>>(new Map());
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -29,6 +32,14 @@ export default function TestimonialsForm({ content }: { content: TestimonialsCon
 
   const handleFileSelect = (id: string, file: File | null) => {
     setImageFiles(prev => new Map(prev).set(id, file));
+     // Also clear the existing image URL if a new file is selected, so we know it needs upload.
+    if (file) {
+      setTestimonials(prev =>
+        prev.map(item =>
+          item.id === id ? { ...item, image: '' } : item
+        )
+      );
+    }
   };
 
   const addTestimonial = () => {
@@ -52,31 +63,40 @@ export default function TestimonialsForm({ content }: { content: TestimonialsCon
     setIsSubmitting(true)
     setError(null)
     
-    const formData = new FormData()
-    formData.append('testimonials', JSON.stringify(testimonials))
-    imageFiles.forEach((file, id) => {
-        if (file) formData.set(`image-file-${id}`, file);
-    });
+    try {
+      let updatedTestimonials = [...testimonials];
 
-    const result = await updateTestimonialsContent(formData)
+      for (let i = 0; i < updatedTestimonials.length; i++) {
+        const item = updatedTestimonials[i];
+        const file = imageFiles.get(item.id);
 
-    if (result.success) {
-      toast({
-        title: 'Success!',
-        description: result.message,
-      })
-      setImageFiles(new Map());
-    } else {
-      setError(result.message || 'An unknown error occurred.')
-      toast({
-        title: 'Error updating content',
-        description: result.message,
-        variant: 'destructive',
-      })
+        if (file) {
+          const uploadResult = await uploadFile(file, `testimonials/${item.id}`);
+          if (!uploadResult.success || !uploadResult.url) {
+            throw new Error(uploadResult.error || `Failed to upload image for ${item.name}.`);
+          }
+          updatedTestimonials[i] = { ...item, image: uploadResult.url };
+        }
+      }
+
+      const result = await updateTestimonialsContent({ testimonials: updatedTestimonials });
+
+      if (result.success) {
+        toast({ title: 'Success!', description: result.message });
+        setImageFiles(new Map());
+        setTestimonials(updatedTestimonials); // Sync state with the new URLs
+      } else {
+        setError(result.message || 'An unknown error occurred.');
+      }
+    } catch (e: any) {
+      console.error("Submission failed:", e);
+      setError(e.message || "An unexpected error occurred during the save process.");
+    } finally {
+      setIsSubmitting(false)
     }
-
-    setIsSubmitting(false)
   }
+
+  const disableActions = isSubmitting || isUploading;
 
   return (
     <form onSubmit={handleSubmit}>
@@ -91,6 +111,7 @@ export default function TestimonialsForm({ content }: { content: TestimonialsCon
                     className="absolute top-4 right-4 h-8 w-8"
                     onClick={() => removeTestimonial(testimonial.id)}
                     aria-label="Remove testimonial"
+                    disabled={disableActions}
                   >
                       <Trash2 className="h-4 w-4" />
                   </Button>
@@ -104,6 +125,7 @@ export default function TestimonialsForm({ content }: { content: TestimonialsCon
                             value={testimonial.name}
                             onChange={(e) => handleInputChange(testimonial.id, 'name', e.target.value)}
                             placeholder="e.g., John Doe"
+                            disabled={disableActions}
                         />
                     </div>
                      <div className="space-y-2">
@@ -113,6 +135,7 @@ export default function TestimonialsForm({ content }: { content: TestimonialsCon
                             value={testimonial.title}
                             onChange={(e) => handleInputChange(testimonial.id, 'title', e.target.value)}
                             placeholder="e.g., CEO, TechCorp"
+                            disabled={disableActions}
                         />
                     </div>
                  </div>
@@ -124,6 +147,7 @@ export default function TestimonialsForm({ content }: { content: TestimonialsCon
                         onChange={(e) => handleInputChange(testimonial.id, 'quote', e.target.value)}
                         placeholder="e.g., An inspiring quote..."
                         rows={4}
+                        disabled={disableActions}
                     />
                 </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -143,6 +167,7 @@ export default function TestimonialsForm({ content }: { content: TestimonialsCon
                             value={testimonial.hint}
                             onChange={(e) => handleInputChange(testimonial.id, 'hint', e.target.value)}
                             placeholder="e.g., man portrait"
+                            disabled={disableActions}
                         />
                     </div>
                  </div>
@@ -151,19 +176,26 @@ export default function TestimonialsForm({ content }: { content: TestimonialsCon
           ))}
         </div>
 
-        {error && 
+        {(error || uploaderError) && (
             <Alert variant="destructive" className="mt-4">
               <AlertTitle>Save Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>{error || uploaderError}</AlertDescription>
             </Alert>
-        }
+        )}
 
-        <Button type="button" variant="outline" onClick={addTestimonial} className="mt-6 w-full">
+        {isUploading && (
+          <div className="space-y-2 mt-4">
+            <Label>Uploading Image...</Label>
+            <Progress value={uploadProgress} />
+          </div>
+        )}
+
+        <Button type="button" variant="outline" onClick={addTestimonial} className="mt-6 w-full" disabled={disableActions}>
             <Plus className="h-4 w-4 mr-2" />
             Add New Testimonial
         </Button>
         
-        <Button type="submit" disabled={isSubmitting} className="w-full mt-6">
+        <Button type="submit" disabled={disableActions} className="w-full mt-6">
           {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save All Changes'}
         </Button>
     </form>

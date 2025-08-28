@@ -3,7 +3,7 @@
 
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
-import { db, storage, initError } from '@/lib/firebase-admin'
+import { db, initError } from '@/lib/firebase-admin'
 
 const galleryItemSchema = z.object({
   id: z.string(),
@@ -14,123 +14,52 @@ const galleryItemSchema = z.object({
   category: z.string().min(1, { message: 'Category is required.' }),
   videoSrc: z.string().url({ message: 'Video URL must be a valid URL.' }).optional().or(z.literal('')),
   size: z.enum(['regular', 'large']).optional(),
-})
+}).refine(data => (data.type === 'image' && data.src) || (data.type === 'video' && data.videoSrc), {
+    message: "A source URL (src or videoSrc) is required based on the item type.",
+    path: ["src"], // you can point to a specific field
+});
 
 const galleryContentSchema = z.object({
   items: z.array(galleryItemSchema),
-  filters: z.array(z.string()),
 });
 
 type ReturnValue = {
     success: boolean;
     message: string;
+    errors?: Record<string, string[]> | null;
 }
 
-export async function updateGalleryContent(formData: FormData): Promise<ReturnValue> {
-  const bucketName = process.env.FIREBASE_STORAGE_BUCKET;
-
-  if (initError || !db || !storage || !bucketName) {
-    const errorMessage = initError || "Database/Storage not initialized or Bucket Name missing.";
+export async function updateGalleryContent(data: unknown): Promise<ReturnValue> {
+  if (initError || !db) {
+    const errorMessage = initError || "Database not initialized.";
     return { success: false, message: `Failed to save: ${errorMessage}` };
   }
 
-  const galleryJson = formData.get('gallery');
-  if (typeof galleryJson !== 'string') {
-    return { success: false, message: 'Invalid form data submitted. Could not find gallery data.' };
-  }
+  const rawData = data as { items: unknown[] };
+  const items = rawData.items || [];
+  const categories = [...new Set(items.map((item: any) => item.category?.trim()).filter(Boolean))];
+  const filters = ["all", ...categories];
+  const dataToValidate = { items, filters };
 
-  let parsedData;
-  try {
-    const rawItems = JSON.parse(galleryJson);
-    const categories = [...new Set(rawItems.map((item: any) => item.category.trim()).filter(Boolean))];
-    const filters = ["all", ...categories];
-    parsedData = { items: rawItems, filters };
-  } catch (error) {
-     return { success: false, message: 'Invalid data format. Gallery data is not valid JSON.' };
-  }
-  
-  // Custom validation check for required files before Zod parse
-  for (let i = 0; i < parsedData.items.length; i++) {
-    const item = parsedData.items[i];
-    
-    if (item.type === 'image') {
-        const imageFile = formData.get(`src-file-${item.id}`) as File | null;
-        // Only require a file if the src isn't already set from a previous upload
-        if (!item.src && (!imageFile || imageFile.size === 0)) {
-            const errorMessage = `Error in Item #${i + 1}: An image is required. Please upload a file.`;
-            return { success: false, message: errorMessage};
-        }
-    }
-     
-    if (item.type === 'video') {
-       const videoFile = formData.get(`video-file-${item.id}`) as File | null;
-       // Only require a file if the videoSrc isn't already set
-       if (!item.videoSrc && (!videoFile || videoFile.size === 0)) {
-           const errorMessage = `Error in Item #${i + 1}: A video file is required. Please upload one.`;
-           return { success: false, message: errorMessage};
-       }
-    }
-  }
-
-  const result = galleryContentSchema.safeParse(parsedData);
+  const result = galleryContentSchema.safeParse(dataToValidate);
 
   if (!result.success) {
-    const firstIssue = result.error.issues[0];
-    let specificMessage = 'An unexpected validation error occurred. Please check all fields.';
-    if (firstIssue) {
-        const path = firstIssue.path;
-        const defaultMessage = firstIssue.message;
-        if (path.length > 2 && path[0] === 'items') {
-            const itemIndex = Number(path[1]) + 1;
-            const fieldName = String(path[2]);
-            const prettyFieldName = fieldName.charAt(0).toUpperCase() + fieldName.slice(1).replace(/([A-Z])/g, ' $1');
-            specificMessage = `Error in Item #${itemIndex} (${prettyFieldName}): ${defaultMessage}`;
-        } else {
-            specificMessage = defaultMessage;
-        }
+    console.error('Validation errors:', result.error.flatten().fieldErrors);
+    return {
+        success: false,
+        message: 'Please correct the errors and try again.',
+        errors: result.error.flatten().fieldErrors
     }
-    console.error('Validation errors:', result.error.format());
-    return { success: false, message: specificMessage };
   }
 
   try {
-    const bucket = storage.bucket(bucketName);
-    const itemsWithUploadedUrls = await Promise.all(result.data.items.map(async (item) => {
-      let newItem = { ...item };
-      const imageFile = formData.get(`src-file-${item.id}`) as File | null;
-      const videoFile = formData.get(`video-file-${item.id}`) as File | null;
-
-      // Handle image upload
-      if (newItem.type === 'image' && imageFile && imageFile.size > 0) {
-        const fileBuffer = Buffer.from(await imageFile.arrayBuffer());
-        const filename = `gallery/images/${item.id}-${Date.now()}-${imageFile.name}`;
-        const fileUpload = bucket.file(filename);
-        await fileUpload.save(fileBuffer, { metadata: { contentType: imageFile.type } });
-        await fileUpload.makePublic();
-        newItem.src = fileUpload.publicUrl();
-      }
-      
-      // Handle video upload if item type is video
-      if (newItem.type === 'video' && videoFile && videoFile.size > 0) {
-         const fileBuffer = Buffer.from(await videoFile.arrayBuffer());
-         const filename = `gallery/videos/${item.id}-${Date.now()}-${videoFile.name}`;
-         const fileUpload = bucket.file(filename);
-         await fileUpload.save(fileBuffer, { metadata: { contentType: videoFile.type } });
-         await fileUpload.makePublic();
-         newItem.videoSrc = fileUpload.publicUrl();
-      }
-      
-      return newItem;
-    }));
-
-    const finalData = {
-      ...result.data,
-      items: itemsWithUploadedUrls
-    };
+    const finalData = { ...result.data, filters };
 
     await db.collection('content').doc('gallery').set(finalData, { merge: true });
+    
     revalidatePath('/');
     revalidatePath('/admin/dashboard/gallery');
+    
     return { success: true, message: 'Gallery updated successfully!' };
 
   } catch (e: any) {
@@ -140,8 +69,6 @@ export async function updateGalleryContent(formData: FormData): Promise<ReturnVa
         userFriendlyMessage = `Save failed: Permission Denied. Since you've already set the roles, this is likely a temporary delay. Please wait a moment and try saving again.`;
     } else if (e.message?.includes('Cloud Firestore API has not been used')) {
         userFriendlyMessage = `Save failed: The Firestore database has not been created for this project. Please create it in the Firebase Console before saving content.`;
-    } else if (e.message?.includes('Bucket name not specified or invalid')) {
-        userFriendlyMessage = `The Storage Bucket is not configured correctly on the server. Please check environment variables.`;
     }
     return { success: false, message: userFriendlyMessage };
   }

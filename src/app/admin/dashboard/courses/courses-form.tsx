@@ -13,9 +13,12 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Plus, Trash2, Loader2 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import ImageUpload from '@/components/ui/image-upload'
+import { useUploader } from '@/hooks/use-uploader'
+import { Progress } from '@/components/ui/progress'
 
 export default function CoursesForm({ content }: { content: CoursesContent }) {
   const { toast } = useToast()
+  const { uploadFile, isUploading, uploadProgress, error: uploaderError } = useUploader();
   const [courses, setCourses] = useState<Course[]>(content.courses)
   const [thumbnailFiles, setThumbnailFiles] = useState<Map<string, File | null>>(new Map());
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -29,6 +32,14 @@ export default function CoursesForm({ content }: { content: CoursesContent }) {
   
   const handleFileSelect = (id: string, file: File | null) => {
     setThumbnailFiles(prev => new Map(prev).set(id, file));
+    // Also clear the existing image URL if a new file is selected, so we know it needs upload.
+    if (file) {
+      setCourses(prev =>
+        prev.map(item =>
+          item.id === id ? { ...item, thumbnail: '' } : item
+        )
+      );
+    }
   };
 
   const addCourse = () => {
@@ -52,32 +63,40 @@ export default function CoursesForm({ content }: { content: CoursesContent }) {
     setIsSubmitting(true)
     setError(null)
     
-    const formData = new FormData()
-    formData.append('courses', JSON.stringify(courses))
-    thumbnailFiles.forEach((file, id) => {
-        if (file) formData.set(`thumbnail-file-${id}`, file);
-    });
+    try {
+      let updatedCourses = [...courses];
 
+      for (let i = 0; i < updatedCourses.length; i++) {
+        const item = updatedCourses[i];
+        const file = thumbnailFiles.get(item.id);
 
-    const result = await updateCoursesContent(formData)
+        if (file) {
+          const uploadResult = await uploadFile(file, `courses/${item.id}`);
+          if (!uploadResult.success || !uploadResult.url) {
+            throw new Error(uploadResult.error || `Failed to upload thumbnail for ${item.title}.`);
+          }
+          updatedCourses[i] = { ...item, thumbnail: uploadResult.url };
+        }
+      }
 
-    if (result.success) {
-      toast({
-        title: 'Success!',
-        description: result.message,
-      })
-      setThumbnailFiles(new Map());
-    } else {
-      setError(result.message || 'An unknown error occurred.')
-      toast({
-        title: 'Error updating content',
-        description: result.message,
-        variant: 'destructive',
-      })
+      const result = await updateCoursesContent({ courses: updatedCourses });
+
+      if (result.success) {
+        toast({ title: 'Success!', description: result.message });
+        setThumbnailFiles(new Map());
+        setCourses(updatedCourses); // Sync state with the new URLs
+      } else {
+        setError(result.message || 'An unknown error occurred.');
+      }
+    } catch (e: any) {
+      console.error("Submission failed:", e);
+      setError(e.message || "An unexpected error occurred during the save process.");
+    } finally {
+      setIsSubmitting(false)
     }
-
-    setIsSubmitting(false)
   }
+  
+  const disableActions = isSubmitting || isUploading;
 
   return (
     <form onSubmit={handleSubmit}>
@@ -92,6 +111,7 @@ export default function CoursesForm({ content }: { content: CoursesContent }) {
                     className="absolute top-4 right-4 h-8 w-8"
                     onClick={() => removeCourse(course.id)}
                     aria-label="Remove course"
+                    disabled={disableActions}
                   >
                       <Trash2 className="h-4 w-4" />
                   </Button>
@@ -104,6 +124,7 @@ export default function CoursesForm({ content }: { content: CoursesContent }) {
                         value={course.title}
                         onChange={(e) => handleInputChange(course.id, 'title', e.target.value)}
                         placeholder="e.g., Mastering Public Speaking"
+                        disabled={disableActions}
                     />
                 </div>
                 <div className="space-y-2">
@@ -114,6 +135,7 @@ export default function CoursesForm({ content }: { content: CoursesContent }) {
                         onChange={(e) => handleInputChange(course.id, 'description', e.target.value)}
                         placeholder="e.g., Conquer your fear of public speaking..."
                         rows={3}
+                        disabled={disableActions}
                     />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -133,6 +155,7 @@ export default function CoursesForm({ content }: { content: CoursesContent }) {
                           value={course.hint}
                           onChange={(e) => handleInputChange(course.id, 'hint', e.target.value)}
                           placeholder="e.g., presentation stage"
+                          disabled={disableActions}
                       />
                   </div>
                 </div>
@@ -144,6 +167,7 @@ export default function CoursesForm({ content }: { content: CoursesContent }) {
                           value={course.price}
                           onChange={(e) => handleInputChange(course.id, 'price', e.target.value)}
                           placeholder="e.g., $299"
+                          disabled={disableActions}
                       />
                   </div>
                    <div className="space-y-2">
@@ -153,6 +177,7 @@ export default function CoursesForm({ content }: { content: CoursesContent }) {
                           value={course.category}
                           onChange={(e) => handleInputChange(course.id, 'category', e.target.value)}
                           placeholder="e.g., Communication"
+                          disabled={disableActions}
                       />
                   </div>
                 </div>
@@ -164,6 +189,7 @@ export default function CoursesForm({ content }: { content: CoursesContent }) {
                         value={course.link}
                         onChange={(e) => handleInputChange(course.id, 'link', e.target.value)}
                         placeholder="https://example.com/course-details"
+                        disabled={disableActions}
                     />
                 </div>
               </CardContent>
@@ -171,19 +197,26 @@ export default function CoursesForm({ content }: { content: CoursesContent }) {
           ))}
         </div>
 
-        {error && 
+        {(error || uploaderError) && (
             <Alert variant="destructive" className="mt-4">
               <AlertTitle>Save Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>{error || uploaderError}</AlertDescription>
             </Alert>
-        }
+        )}
 
-        <Button type="button" variant="outline" onClick={addCourse} className="mt-6 w-full">
+        {isUploading && (
+          <div className="space-y-2 mt-4">
+            <Label>Uploading Thumbnail...</Label>
+            <Progress value={uploadProgress} />
+          </div>
+        )}
+
+        <Button type="button" variant="outline" onClick={addCourse} className="mt-6 w-full" disabled={disableActions}>
             <Plus className="h-4 w-4 mr-2" />
             Add New Course
         </Button>
         
-        <Button type="submit" disabled={isSubmitting} className="w-full mt-6">
+        <Button type="submit" disabled={disableActions} className="w-full mt-6">
           {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save All Changes'}
         </Button>
     </form>
