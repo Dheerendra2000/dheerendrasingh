@@ -25,8 +25,10 @@ const galleryContentSchema = z.object({
 // so we can't do it at the individual item level easily. We'll check it inside the action.
 
 export async function updateGalleryContent(prevState: any, formData: FormData) {
-  if (initError || !db || !storage) {
-    const errorMessage = initError || "Database or Storage not initialized.";
+  const bucketName = process.env.FIREBASE_STORAGE_BUCKET;
+
+  if (initError || !db || !storage || !bucketName) {
+    const errorMessage = initError || "Database/Storage not initialized or Bucket Name missing.";
     return { success: false, message: `Failed to save: ${errorMessage}`, errors: { _form: errorMessage } };
   }
 
@@ -91,7 +93,7 @@ export async function updateGalleryContent(prevState: any, formData: FormData) {
   }
 
   try {
-    const bucket = storage.bucket();
+    const bucket = storage.bucket(bucketName); // Explicitly specify the bucket name here
     const itemsWithUploadedUrls = await Promise.all(result.data.items.map(async (item, index) => {
       const file = formData.get(`src-file-${item.id}`) as File | null;
       let newItem = { ...item };
@@ -139,6 +141,8 @@ export async function updateGalleryContent(prevState: any, formData: FormData) {
         userFriendlyMessage = `Save failed: Permission Denied. Since you've already set the roles, this is likely a temporary delay. Please wait a moment and try saving again.`;
     } else if (e.message?.includes('Cloud Firestore API has not been used')) {
         userFriendlyMessage = `Save failed: The Firestore database has not been created for this project. Please create it in the Firebase Console before saving content.`;
+    } else if (e.message?.includes('Bucket name not specified or invalid')) {
+        userFriendlyMessage = `The Storage Bucket is not configured correctly on the server. Please check environment variables.`;
     }
     return { success: false, message: userFriendlyMessage, errors: { _form: e.message || "Firestore/Storage error." } };
   }
