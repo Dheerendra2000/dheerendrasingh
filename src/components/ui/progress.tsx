@@ -1,4 +1,5 @@
-"use client"
+
+'use client'
 
 import * as React from "react"
 import * as ProgressPrimitive from "@radix-ui/react-progress"
@@ -7,8 +8,8 @@ import { cn } from "@/lib/utils"
 
 const Progress = React.forwardRef<
   React.ElementRef<typeof ProgressPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root>
->(({ className, value, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> & { showValue?: boolean }
+>(({ className, value, showValue = true, ...props }, ref) => (
   <ProgressPrimitive.Root
     ref={ref}
     className={cn(
@@ -18,9 +19,16 @@ const Progress = React.forwardRef<
     {...props}
   >
     <ProgressPrimitive.Indicator
-      className="h-full w-full flex-1 bg-primary transition-all"
+      className="h-full w-full flex-1 bg-primary transition-all duration-500 ease-out"
       style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
     />
+    {showValue && (
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-xs font-semibold text-primary-foreground mix-blend-difference">
+          {Math.round(value || 0)}%
+        </span>
+      </div>
+    )}
   </ProgressPrimitive.Root>
 ))
 Progress.displayName = ProgressPrimitive.Root.displayName
