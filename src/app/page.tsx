@@ -15,6 +15,7 @@ export default function Home() {
       <Dock />
       <main className="flex-grow">
         <HeroSection />
+        <div id="home" className="absolute top-0" />
         <AboutSection />
         <AchievementsSection />
         <GallerySection />
