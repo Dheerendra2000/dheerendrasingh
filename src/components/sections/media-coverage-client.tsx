@@ -55,7 +55,7 @@ export default function MediaCoverageClient({ items }: { items: MediaItem[] }) {
       </Carousel>
 
       <div className="text-center mt-12">
-        <Button asChild size="lg">
+        <Button asChild size="lg" className="rounded-full">
           <Link href="/media">View All Media Features</Link>
         </Button>
       </div>
