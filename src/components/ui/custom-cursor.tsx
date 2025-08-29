@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -46,16 +47,16 @@ export default function CustomCursor() {
     document.body.addEventListener('mouseover', handleMouseOver);
     document.body.addEventListener('mousedown', handleMouseDown);
     document.body.addEventListener('mouseup', handleMouseUp);
-    document.body.addEventListener('mouseleave', handleMouseLeave);
-    document.body.addEventListener('mouseenter', handleMouseEnter);
+    window.addEventListener('mouseleave', handleMouseLeave);
+    window.addEventListener('mouseenter', handleMouseEnter);
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       document.body.removeEventListener('mouseover', handleMouseOver);
       document.body.removeEventListener('mousedown', handleMouseDown);
       document.body.removeEventListener('mouseup', handleMouseUp);
-      document.body.removeEventListener('mouseleave', handleMouseLeave);
-      document.body.removeEventListener('mouseenter', handleMouseEnter);
+      window.removeEventListener('mouseleave', handleMouseLeave);
+      window.removeEventListener('mouseenter', handleMouseEnter);
     };
   }, [mouse.x, mouse.y]);
 
