@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from '@/components/theme-provider';
 import CustomCursor from '@/components/ui/custom-cursor';
+import PageWrapper from '@/components/layout/page-wrapper';
 
 export const metadata: Metadata = {
   title: 'Dheerendra Singh - Public Speaker & Branding Specialist',
@@ -30,11 +31,10 @@ export default function RootLayout({
             disableTransitionOnChange
         >
           <CustomCursor />
-          <div className="aurora-bg" />
-          <div className="relative z-10">
+          <PageWrapper>
             {children}
-            <Toaster />
-          </div>
+          </PageWrapper>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
