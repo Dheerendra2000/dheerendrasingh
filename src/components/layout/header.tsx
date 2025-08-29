@@ -3,7 +3,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { Menu, X } from "lucide-react"
+import { Menu, X, Home, User, Award, Images, Newspaper, MessageSquare, FileText, Phone } from "lucide-react"
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 
 import { Button } from "@/components/ui/button"
@@ -14,45 +14,54 @@ import { useScrollSpy } from "@/hooks/use-scrollspy"
 import { usePathname } from "next/navigation"
 
 const navLinks = [
-  { name: "Home", href: "/#home", id: "home" },
-  { name: "About", href: "/#about", id: "about" },
-  { name: "Achievements", href: "/#achievements", id: "achievements" },
-  { name: "Gallery", href: "/#gallery", id: "gallery" },
-  { name: "Media", href: "/media", id: "media-hub" },
-  { name: "Testimonials", href: "/#testimonials", id: "testimonials" },
-  { name: "Courses", href: "/#courses", id: "courses" },
-]
+  { name: 'Home', href: '/#home', id: 'home', icon: <Home className="h-full w-full" /> },
+  { name: 'About', href: '/#about', id: 'about', icon: <User className="h-full w-full" /> },
+  { name: 'Achievements', href: '/#achievements', id: 'achievements', icon: <Award className="h-full w-full" /> },
+  { name: 'Gallery', href: '/#gallery', id: 'gallery', icon: <Images className="h-full w-full" /> },
+  { name: 'Media', href: '/media', id: 'media-hub', icon: <Newspaper className="h-full w-full" /> },
+  { name: 'Testimonials', href: '/#testimonials', id: 'testimonials', icon: <MessageSquare className="h-full w-full" /> },
+  { name: 'Courses', href: '/#courses', id: 'courses', icon: <FileText className="h-full w-full" /> },
+  { name: 'Contact', href: '/#contact', id: 'contact', icon: <Phone className="h-full w-full" /> },
+];
 
-function HeaderLink({
-  link,
+function HeaderIcon({
+  mouseX,
+  href,
+  name,
   isActive,
-  mouseY,
+  children,
 }: {
-  link: { name: string; href: string; id: string };
+  mouseX: any;
+  href: string;
+  name: string;
   isActive: boolean;
-  mouseY: any;
+  children: React.ReactNode;
 }) {
-  const ref = React.useRef<HTMLAnchorElement>(null);
+  const ref = React.useRef<HTMLDivElement>(null);
 
-  const distance = useTransform(mouseY, (val) => {
-    const bounds = ref.current?.getBoundingClientRect() ?? { y: 0, height: 0 };
-    return val - bounds.y - bounds.height / 2;
+  const distance = useTransform(mouseX, (val) => {
+    const bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
+    return val - bounds.x - bounds.width / 2;
   });
 
-  const scaleSync = useTransform(distance, [-100, 0, 100], [1, 1.25, 1]);
-  const scale = useSpring(scaleSync, { mass: 0.1, stiffness: 150, damping: 12 });
+  // The widthSync transformation creates the "magnetic" bubble effect.
+  // The icon grows to 60px when the cursor is directly over it and shrinks back to 32px when it's 100px away.
+  const widthSync = useTransform(distance, [-100, 0, 100], [32, 60, 32]);
+  const width = useSpring(widthSync, { mass: 0.1, stiffness: 150, damping: 12 });
 
   return (
-    <motion.div style={{ scale }}>
-        <Link
-            ref={ref}
-            href={link.href}
-            className={cn(
-                "font-medium transition-transform,colors",
-                isActive ? "text-primary font-bold" : "text-foreground/80 hover:text-primary"
-            )}
-            >
-            {link.name}
+    <motion.div
+      ref={ref}
+      style={{ width }}
+      className={cn(
+        "aspect-square w-8 cursor-pointer rounded-full flex items-center justify-center transition-colors duration-300",
+        isActive ? "bg-primary" : "bg-secondary/80 hover:bg-secondary"
+        )}
+      aria-label={name}
+      title={name}
+    >
+        <Link href={href} className={cn("w-1/2 h-1/2", isActive ? "text-primary-foreground" : "text-primary")}>
+            {children}
         </Link>
     </motion.div>
   );
@@ -62,7 +71,7 @@ function HeaderLink({
 export default function Header() {
   const [isScrolled, setIsScrolled] = React.useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
-  const mouseY = useMotionValue(Infinity);
+  const mouseX = useMotionValue(Infinity);
 
   const pathname = usePathname();
   const isHomePage = pathname === '/';
@@ -86,7 +95,11 @@ export default function Header() {
 
   const isLinkActive = (linkId: string) => {
     if (pathname !== '/') {
-        return pathname.includes(linkId);
+        // Special case for media page
+        if (linkId === 'media-hub') {
+            return pathname.startsWith('/media');
+        }
+        return false;
     }
     return activeId === linkId;
   };
@@ -108,24 +121,22 @@ export default function Header() {
 
           {/* Desktop Navigation */}
            <motion.div 
-             className="hidden md:flex items-center gap-2"
-             onMouseMove={(e) => mouseY.set(e.pageY)}
-             onMouseLeave={() => mouseY.set(Infinity)}
+             className="hidden md:flex items-center justify-center gap-4"
+             onMouseMove={(e) => mouseX.set(e.pageX)}
+             onMouseLeave={() => mouseX.set(Infinity)}
            >
-            <nav className="flex items-center gap-6">
-              {navLinks.map((link) => (
-                <HeaderLink
-                  key={link.href}
-                  link={link}
-                  isActive={isLinkActive(link.id)}
-                  mouseY={mouseY}
-                />
-              ))}
-            </nav>
-            <div className="flex items-center gap-2 ml-6">
-                <Button asChild>
-                <Link href="/#contact">Contact</Link>
-                </Button>
+            {navLinks.map((link) => (
+                <HeaderIcon
+                    href={link.href}
+                    name={link.name}
+                    isActive={isLinkActive(link.id)}
+                    mouseX={mouseX}
+                    key={link.href}
+                >
+                    {link.icon}
+                </HeaderIcon>
+            ))}
+             <div className="flex items-center gap-2 ml-4">
                 <ThemeToggle />
             </div>
           </motion.div>
