@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from '@/components/theme-provider';
+import CustomCursor from '@/components/ui/custom-cursor';
 
 export const metadata: Metadata = {
   title: 'Dheerendra Singh - Public Speaker & Branding Specialist',
@@ -28,6 +29,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
         >
+          <CustomCursor />
           <div className="aurora-bg" />
           <div className="relative z-10">
             {children}

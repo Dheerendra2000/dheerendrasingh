@@ -65,6 +65,9 @@
   body {
     @apply bg-[#070919] text-foreground;
   }
+  html, body, a, button {
+    cursor: none !important;
+  }
   h1,
   h2,
   h3,
