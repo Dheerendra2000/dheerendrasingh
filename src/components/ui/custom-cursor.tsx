@@ -67,8 +67,6 @@ export default function CustomCursor() {
       opacity: 1,
       height: cursorSize,
       width: cursorSize,
-      x: mouse.x,
-      y: mouse.y,
       transition: {
         type: 'spring',
         mass: 0.6,
@@ -86,8 +84,6 @@ export default function CustomCursor() {
   const dotVariants = {
     default: {
       opacity: 1,
-      x: mouse.x,
-      y: mouse.y,
     },
     hovering: {
       scale: 2,
@@ -104,11 +100,19 @@ export default function CustomCursor() {
       <motion.div
         variants={cursorVariants}
         animate={isHidden ? 'hidden' : isgrabbing ? 'grabbing' : 'default'}
+        style={{
+          x: mouse.x,
+          y: mouse.y,
+        }}
         className="pointer-events-none fixed left-0 top-0 z-[9999] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-primary"
       />
       <motion.div
         variants={dotVariants}
         animate={isHidden ? 'hidden' : isHovering ? 'hovering' : 'default'}
+        style={{
+          x: mouse.x,
+          y: mouse.y,
+        }}
         className={cn(
           "pointer-events-none fixed left-0 top-0 z-[9999] h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full",
           isHovering ? "bg-transparent" : "bg-primary"
