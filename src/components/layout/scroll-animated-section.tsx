@@ -29,7 +29,7 @@ export default function ScrollAnimatedSection({ children, className }: ScrollAni
     <motion.div
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: "0px 0px -150px 0px" }}
+      viewport={{ once: false, margin: "0px 0px -150px 0px" }}
       variants={variants}
       transition={{ duration: 0.8, ease: "easeInOut" }}
       className={className}
