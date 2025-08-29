@@ -11,8 +11,8 @@ interface ScrollAnimatedSectionProps {
 export default function ScrollAnimatedSection({ children, className }: ScrollAnimatedSectionProps) {
 
   const variants = {
-    hidden: { opacity: 0, y: 50 },
-    visible: { opacity: 1, y: 0 },
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: { opacity: 1, scale: 1 },
   };
 
   return (
