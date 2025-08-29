@@ -4,6 +4,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -22,9 +23,46 @@ const navLinks = [
   { name: "Courses", href: "/#courses", id: "courses" },
 ]
 
+function HeaderLink({
+  link,
+  isActive,
+  mouseY,
+}: {
+  link: { name: string; href: string; id: string };
+  isActive: boolean;
+  mouseY: any;
+}) {
+  const ref = React.useRef<HTMLAnchorElement>(null);
+
+  const distance = useTransform(mouseY, (val) => {
+    const bounds = ref.current?.getBoundingClientRect() ?? { y: 0, height: 0 };
+    return val - bounds.y - bounds.height / 2;
+  });
+
+  const scaleSync = useTransform(distance, [-100, 0, 100], [1, 1.25, 1]);
+  const scale = useSpring(scaleSync, { mass: 0.1, stiffness: 150, damping: 12 });
+
+  return (
+    <motion.div style={{ scale }}>
+        <Link
+            ref={ref}
+            href={link.href}
+            className={cn(
+                "font-medium transition-transform,colors",
+                isActive ? "text-primary font-bold" : "text-foreground/80 hover:text-primary"
+            )}
+            >
+            {link.name}
+        </Link>
+    </motion.div>
+  );
+}
+
+
 export default function Header() {
   const [isScrolled, setIsScrolled] = React.useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
+  const mouseY = useMotionValue(Infinity);
 
   const pathname = usePathname();
   const isHomePage = pathname === '/';
@@ -69,19 +107,19 @@ export default function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-2">
+           <motion.div 
+             className="hidden md:flex items-center gap-2"
+             onMouseMove={(e) => mouseY.set(e.pageY)}
+             onMouseLeave={() => mouseY.set(Infinity)}
+           >
             <nav className="flex items-center gap-6">
               {navLinks.map((link) => (
-                <Link
+                <HeaderLink
                   key={link.href}
-                  href={link.href}
-                  className={cn(
-                      "font-medium transition-colors",
-                      isLinkActive(link.id) ? "text-primary font-bold" : "text-foreground/80 hover:text-primary"
-                  )}
-                >
-                  {link.name}
-                </Link>
+                  link={link}
+                  isActive={isLinkActive(link.id)}
+                  mouseY={mouseY}
+                />
               ))}
             </nav>
             <div className="flex items-center gap-2 ml-6">
@@ -90,7 +128,7 @@ export default function Header() {
                 </Button>
                 <ThemeToggle />
             </div>
-          </div>
+          </motion.div>
 
           {/* Mobile Navigation */}
           <div className="md:hidden flex items-center gap-2">
