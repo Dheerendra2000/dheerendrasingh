@@ -71,12 +71,12 @@ export default async function HeroSection() {
                   {content.heroTagline}
                 </p>
                 <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <Button size="lg" asChild>
+                <Button size="lg" asChild className="rounded-full">
                     <Link href="#contact">
                       Book a Session
                     </Link>
                 </Button>
-                <Button size="lg" variant="secondary" asChild>
+                <Button size="lg" variant="secondary" asChild className="rounded-full">
                     <Link href="#courses">
                       Explore Courses
                     </Link>
