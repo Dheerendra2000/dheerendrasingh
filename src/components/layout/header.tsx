@@ -4,7 +4,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { Menu, X, Home, User, Award, Images, Newspaper, MessageSquare, FileText, Phone } from "lucide-react"
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -14,56 +14,46 @@ import { useScrollSpy } from "@/hooks/use-scrollspy"
 import { usePathname } from "next/navigation"
 
 const navLinks = [
-  { name: 'Home', href: '/#home', id: 'home', icon: <Home className="h-full w-full" /> },
-  { name: 'About', href: '/#about', id: 'about', icon: <User className="h-full w-full" /> },
-  { name: 'Achievements', href: '/#achievements', id: 'achievements', icon: <Award className="h-full w-full" /> },
-  { name: 'Gallery', href: '/#gallery', id: 'gallery', icon: <Images className="h-full w-full" /> },
-  { name: 'Media', href: '/media', id: 'media-hub', icon: <Newspaper className="h-full w-full" /> },
-  { name: 'Testimonials', href: '/#testimonials', id: 'testimonials', icon: <MessageSquare className="h-full w-full" /> },
-  { name: 'Courses', href: '/#courses', id: 'courses', icon: <FileText className="h-full w-full" /> },
-  { name: 'Contact', href: '/#contact', id: 'contact', icon: <Phone className="h-full w-full" /> },
+  { name: 'Home', href: '/#home', id: 'home', icon: <Home className="h-4 w-4" /> },
+  { name: 'About', href: '/#about', id: 'about', icon: <User className="h-4 w-4" /> },
+  { name: 'Achievements', href: '/#achievements', id: 'achievements', icon: <Award className="h-4 w-4" /> },
+  { name: 'Gallery', href: '/#gallery', id: 'gallery', icon: <Images className="h-4 w-4" /> },
+  { name: 'Media', href: '/media', id: 'media-hub', icon: <Newspaper className="h-4 w-4" /> },
+  { name: 'Testimonials', href: '/#testimonials', id: 'testimonials', icon: <MessageSquare className="h-4 w-4" /> },
+  { name: 'Courses', href: '/#courses', id: 'courses', icon: <FileText className="h-4 w-4" /> },
+  { name: 'Contact', href: '/#contact', id: 'contact', icon: <Phone className="h-4 w-4" /> },
 ];
 
-function HeaderIcon({
-  mouseX,
+function NavLink({
   href,
   name,
   isActive,
   children,
 }: {
-  mouseX: any;
   href: string;
   name: string;
   isActive: boolean;
   children: React.ReactNode;
 }) {
-  const ref = React.useRef<HTMLDivElement>(null);
-
-  const distance = useTransform(mouseX, (val) => {
-    const bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
-    return val - bounds.x - bounds.width / 2;
-  });
-
-  // The widthSync transformation creates the "magnetic" bubble effect.
-  // The icon grows to 60px when the cursor is directly over it and shrinks back to 32px when it's 100px away.
-  const widthSync = useTransform(distance, [-100, 0, 100], [32, 60, 32]);
-  const width = useSpring(widthSync, { mass: 0.1, stiffness: 150, damping: 12 });
-
   return (
-    <motion.div
-      ref={ref}
-      style={{ width }}
-      className={cn(
-        "aspect-square w-8 cursor-pointer rounded-full flex items-center justify-center transition-colors duration-300",
-        isActive ? "bg-primary" : "bg-secondary/80 hover:bg-secondary"
-        )}
-      aria-label={name}
-      title={name}
-    >
-        <Link href={href} className={cn("w-1/2 h-1/2", isActive ? "text-primary-foreground" : "text-primary")}>
+    <Link href={href} className="relative px-3 py-2 transition-colors" aria-current={isActive ? "page" : undefined}>
+        <motion.span 
+          className={cn(
+            "relative z-10 flex items-center gap-2",
+            isActive ? "text-primary" : "text-muted-foreground hover:text-primary"
+          )}
+        >
             {children}
-        </Link>
-    </motion.div>
+            <span>{name}</span>
+        </motion.span>
+        {isActive && (
+            <motion.div
+                layoutId="header-active-link"
+                className="absolute inset-0 bg-primary/10 rounded-md"
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            />
+        )}
+    </Link>
   );
 }
 
@@ -71,7 +61,6 @@ function HeaderIcon({
 export default function Header() {
   const [isScrolled, setIsScrolled] = React.useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
-  const mouseX = useMotionValue(Infinity);
 
   const pathname = usePathname();
   const isHomePage = pathname === '/';
@@ -121,20 +110,17 @@ export default function Header() {
 
           {/* Desktop Navigation */}
            <motion.div 
-             className="hidden md:flex items-center justify-center gap-4"
-             onMouseMove={(e) => mouseX.set(e.pageX)}
-             onMouseLeave={() => mouseX.set(Infinity)}
+             className="hidden md:flex items-center justify-center gap-2"
            >
             {navLinks.map((link) => (
-                <HeaderIcon
+                <NavLink
                     href={link.href}
                     name={link.name}
                     isActive={isLinkActive(link.id)}
-                    mouseX={mouseX}
                     key={link.href}
                 >
                     {link.icon}
-                </HeaderIcon>
+                </NavLink>
             ))}
              <div className="flex items-center gap-2 ml-4">
                 <ThemeToggle />
