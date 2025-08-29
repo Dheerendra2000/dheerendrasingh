@@ -41,7 +41,7 @@ export default async function HeroSection() {
   return (
     <section id="home" className="py-12 md:py-20 bg-transparent">
       <div className="container mx-auto px-4">
-        <div className="relative aspect-video rounded-lg overflow-hidden shadow-2xl group glassmorphism">
+        <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl group glassmorphism">
             {content.videoUrl && (
               <video
                   key={content.videoUrl}
