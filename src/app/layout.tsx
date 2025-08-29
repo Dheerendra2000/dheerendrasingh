@@ -6,9 +6,41 @@ import CustomCursor from '@/components/ui/custom-cursor';
 import PageWrapper from '@/components/layout/page-wrapper';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.dheerendrasingh.com'),
   title: 'Dheerendra Singh - Public Speaker & Branding Specialist',
   description: 'Official portfolio of Dheerendra Singh, a leading public speaker and branding & PR specialist. Explore his achievements, courses, and gallery.',
-  keywords: ['Dheerendra Singh', 'public speaker', 'branding', 'PR specialist', 'keynote speaker', 'courses'],
+  keywords: ['Dheerendra Singh', 'public speaker', 'branding', 'PR specialist', 'keynote speaker', 'courses', 'Viksit Bharat'],
+  creator: 'Dheerendra Singh',
+  authors: [{ name: 'Dheerendra Singh', url: 'https://www.dheerendrasingh.com' }],
+  robots: 'index, follow',
+  openGraph: {
+    title: 'Dheerendra Singh - Public Speaker & Branding Specialist',
+    description: 'Official portfolio of Dheerendra Singh, a leading public speaker and branding & PR specialist.',
+    url: 'https://www.dheerendrasingh.com',
+    siteName: 'Dheerendra Singh Portfolio',
+    images: [
+      {
+        url: 'https://raw.githubusercontent.com/Dheerendra2000/hositng_data/main/ico.png',
+        width: 800,
+        height: 600,
+        alt: 'Dheerendra Singh promotional image',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Dheerendra Singh - Public Speaker & Branding Specialist',
+    description: 'Official portfolio of Dheerendra Singh, a leading public speaker and branding & PR specialist.',
+    images: ['https://raw.githubusercontent.com/Dheerendra2000/hositng_data/main/ico.png'],
+    creator: '@Dheerendra',
+  },
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon-16x16.png',
+    apple: '/apple-touch-icon.png',
+  },
 };
 
 export default function RootLayout({
