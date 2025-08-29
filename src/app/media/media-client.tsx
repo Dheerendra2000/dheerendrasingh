@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -33,7 +34,7 @@ export default function MediaClient({ content }: { content: MediaContent }) {
               key={filter}
               variant={activeFilter === filter ? "default" : "outline"}
               onClick={() => setActiveFilter(filter)}
-              className="capitalize"
+              className="capitalize rounded-full"
             >
               {filter}
             </Button>

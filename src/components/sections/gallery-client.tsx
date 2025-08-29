@@ -72,7 +72,7 @@ export default function GalleryClient({ content }: { content: GalleryContent }) 
               key={filter}
               variant={activeFilter === filter ? "default" : "outline"}
               onClick={() => setActiveFilter(filter)}
-              className="capitalize"
+              className="capitalize rounded-full"
             >
               {filter.replace('-', ' ')}
             </Button>
