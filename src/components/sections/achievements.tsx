@@ -1,3 +1,4 @@
+
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Award, Megaphone, Newspaper, Terminal, type LucideIcon } from "lucide-react"
 import { getAchievementsContent } from "@/lib/data/achievements"
@@ -50,7 +51,7 @@ export default async function AchievementsSection() {
                     <div className="absolute top-1/2 -mt-4 hidden md:block w-8 h-8 rounded-full bg-primary border-4 border-background right-0 translate-x-[18px] md:left-auto">
                       {index % 2 !== 0 && <div className="absolute top-1/2 -mt-4 w-8 h-8 rounded-full bg-primary border-4 border-background left-0 -translate-x-[18px]"></div>}
                     </div>
-                    <Card className="shadow-lg transform hover:scale-105 transition-transform duration-300">
+                    <Card className="shadow-lg transform hover:scale-105 transition-transform duration-300 rounded-2xl">
                       <CardHeader>
                         <div className={`flex items-center gap-4 mb-2 justify-center ${index % 2 === 0 ? 'md:justify-end' : 'md:justify-start'}`}>
                           <div className={`flex items-center gap-4 ${index % 2 === 0 ? 'md:flex-row-reverse' : ''}`}>
