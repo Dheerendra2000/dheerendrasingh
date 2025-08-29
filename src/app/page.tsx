@@ -1,4 +1,3 @@
-import Dock from '@/components/layout/dock'
 import Footer from '@/components/layout/footer'
 import Header from '@/components/layout/header'
 import HeroSection from '@/components/sections/hero'
@@ -14,7 +13,6 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <Dock />
       <main className="flex-grow">
         <HeroSection />
         <div id="home" className="absolute top-0" />
