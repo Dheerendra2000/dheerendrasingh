@@ -57,7 +57,7 @@ export default function TestimonialForm() {
 
   return (
     <div className="mt-16">
-      <Card className="max-w-2xl mx-auto shadow-lg">
+      <Card className="max-w-2xl mx-auto shadow-lg rounded-2xl">
         <CardHeader>
           <CardTitle>Leave a Testimonial</CardTitle>
           <CardDescription>Share your experience. Your feedback helps others and is greatly appreciated!</CardDescription>

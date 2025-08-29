@@ -52,7 +52,7 @@ export default async function TestimonialsSection() {
             {testimonials.map((testimonial) => (
               <CarouselItem key={testimonial.id} className="md:basis-1/2 lg:basis-1/1">
                 <div className="p-1">
-                  <Card className="shadow-lg">
+                  <Card className="shadow-lg rounded-2xl">
                     <CardContent className="flex flex-col items-center justify-center p-8 text-center">
                       <Quote className="w-10 h-10 text-accent mb-4" />
                       <p className="text-muted-foreground italic mb-6">"{testimonial.quote}"</p>

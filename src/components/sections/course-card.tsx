@@ -51,7 +51,7 @@ export default function CourseCard({ course }: { course: Course }) {
       className="relative"
     >
       <Card
-        className="flex flex-col overflow-hidden w-full h-full"
+        className="flex flex-col overflow-hidden w-full h-full rounded-2xl"
         style={{ transformStyle: "preserve-3d", transform: "translateZ(75px)" }}
       >
         <div

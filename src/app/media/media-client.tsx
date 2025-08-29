@@ -42,7 +42,7 @@ export default function MediaClient({ content }: { content: MediaContent }) {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
           {sortedItems.map(item => (
-            <Card key={item.id} className="flex flex-col overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 h-full">
+            <Card key={item.id} className="flex flex-col overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 h-full rounded-2xl">
               <CardHeader>
                 <div className="relative aspect-video">
                   <Image

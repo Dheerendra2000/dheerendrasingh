@@ -36,7 +36,7 @@ export default async function AboutSection() {
         </div>
         <div className="grid md:grid-cols-5 gap-12 items-center">
           <div className="md:col-span-2">
-            <Card className="overflow-hidden shadow-lg transform hover:scale-105 transition-transform duration-300">
+            <Card className="overflow-hidden shadow-lg transform hover:scale-105 transition-transform duration-300 rounded-2xl">
               <Image
                 src={content.imageUrl}
                 alt="Dheerendra Singh professional portrait"
