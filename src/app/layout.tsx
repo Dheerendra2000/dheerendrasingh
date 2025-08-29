@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://www.dheerendrasingh.com'),
   title: 'Dheerendra Singh - Public Speaker & Branding Specialist',
   description: 'Official portfolio of Dheerendra Singh, a leading public speaker and branding & PR specialist. Explore his achievements, courses, and gallery.',
-  keywords: ['Dheerendra Singh', 'public speaker', 'branding', 'PR specialist', 'keynote speaker', 'courses', 'Viksit Bharat'],
+  keywords: ['Dheerendra Singh', 'public speaker', 'motivational speaker', 'branding specialist', 'PR specialist', 'keynote speaker', 'corporate trainer', 'leadership coach', 'Viksit Bharat', 'youth icon', 'personal branding', 'public relations', 'communication expert'],
   creator: 'Dheerendra Singh',
   authors: [{ name: 'Dheerendra Singh', url: 'https://www.dheerendrasingh.com' }],
   robots: 'index, follow',
