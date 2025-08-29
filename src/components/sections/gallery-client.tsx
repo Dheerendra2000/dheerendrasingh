@@ -83,7 +83,7 @@ export default function GalleryClient({ content }: { content: GalleryContent }) 
             <Card 
               key={item.id} 
               className={cn(
-                "overflow-hidden group shadow-lg !bg-transparent aspect-video",
+                "overflow-hidden group shadow-lg !bg-transparent aspect-video rounded-2xl",
                 item.size === 'large' ? 'sm:col-span-2 lg:col-span-2' : ''
               )}
             >

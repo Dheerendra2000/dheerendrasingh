@@ -50,7 +50,7 @@ export default function MediaClient({ content }: { content: MediaContent }) {
                     alt={item.title}
                     data-ai-hint={item.coverImageHint}
                     fill
-                    className="object-cover rounded-t-lg"
+                    className="object-cover rounded-lg"
                   />
                   <Badge className="absolute top-2 right-2 capitalize">{item.type}</Badge>
                 </div>
