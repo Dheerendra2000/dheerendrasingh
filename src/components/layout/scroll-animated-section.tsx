@@ -31,7 +31,7 @@ export default function ScrollAnimatedSection({ children, className }: ScrollAni
       whileInView="visible"
       viewport={{ once: true, margin: "0px 0px -150px 0px" }}
       variants={variants}
-      transition={{ duration: 0.8, ease: [0.6, 0.05, -0.01, 0.9] }} // A smoother, more refined easing
+      transition={{ duration: 0.8, ease: "easeInOut" }}
       className={className}
     >
       {children}
