@@ -1,5 +1,6 @@
 import Footer from '@/components/layout/footer'
 import Header from '@/components/layout/header'
+import ScrollAnimatedSection from '@/components/layout/scroll-animated-section'
 import HeroSection from '@/components/sections/hero'
 import AboutSection from '@/components/sections/about'
 import AchievementsSection from '@/components/sections/achievements'
@@ -16,13 +17,27 @@ export default function Home() {
       <main className="flex-grow">
         <HeroSection />
         <div id="home" className="absolute top-0" />
-        <AboutSection />
-        <AchievementsSection />
-        <GallerySection />
-        <MediaCoverageSection />
-        <TestimonialsSection />
-        <CoursesSection />
-        <ContactSection />
+        <ScrollAnimatedSection>
+          <AboutSection />
+        </ScrollAnimatedSection>
+        <ScrollAnimatedSection>
+          <AchievementsSection />
+        </ScrollAnimatedSection>
+        <ScrollAnimatedSection>
+          <GallerySection />
+        </ScrollAnimatedSection>
+        <ScrollAnimatedSection>
+          <MediaCoverageSection />
+        </ScrollAnimatedSection>
+        <ScrollAnimatedSection>
+          <TestimonialsSection />
+        </ScrollAnimatedSection>
+        <ScrollAnimatedSection>
+          <CoursesSection />
+        </ScrollAnimatedSection>
+        <ScrollAnimatedSection>
+          <ContactSection />
+        </ScrollAnimatedSection>
       </main>
       <Footer />
     </div>
